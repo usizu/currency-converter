@@ -59,6 +59,12 @@ export function addToHistory(entry: ConversionEntry): void {
   set(KEYS.history, history);
 }
 
+export function removeHistoryEntry(index: number): void {
+  const history = getHistory();
+  history.splice(index, 1);
+  set(KEYS.history, history);
+}
+
 export function clearHistory(): void {
   localStorage.removeItem(KEYS.history);
 }

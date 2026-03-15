@@ -190,11 +190,9 @@ header {
   flex: 1;
   min-width: 0;
   text-align: center;
-  padding: clamp(0.4rem, 1.2vw, 0.55rem) 0.35rem;
-  padding-right: 0.2rem;
-  border-radius: var(--pico-border-radius);
-  background: var(--pico-card-background-color);
-  border: 1px solid var(--pico-muted-border-color);
+  padding: clamp(0.4rem, 1.2vw, 0.55rem) 0.2rem;
+  background: none;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -326,11 +324,35 @@ header {
   user-select: text;
 }
 
+.history-right {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+
 .history-list .time-text {
   color: var(--pico-muted-color);
   font-size: clamp(0.58rem, 1.6vw, 0.68rem);
   white-space: nowrap;
-  margin-left: 0.4rem;
+}
+
+.history-delete {
+  background: none;
+  border: none;
+  color: var(--pico-muted-color);
+  font-size: clamp(0.8rem, 2.4vw, 0.95rem);
+  cursor: pointer;
+  padding: 0 0.1rem;
+  margin: 0;
+  line-height: 1;
+  opacity: 0.5;
+  transition: opacity 0.1s ease;
+}
+
+.history-delete:active {
+  opacity: 1;
+  color: var(--pico-del-color);
 }
 
 .empty-state {

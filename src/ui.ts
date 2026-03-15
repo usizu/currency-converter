@@ -2,7 +2,7 @@ import tippy, { type Instance } from 'tippy.js';
 import type { CachedRates, ConversionEntry } from './types';
 import {
   getSelectedPair, setSelectedPair,
-  getHistory, addToHistory, clearHistory,
+  getHistory, addToHistory, removeHistoryEntry, clearHistory,
   getLastAmount, setLastAmount,
   getHiddenCurrencies, setHiddenCurrencies,
 } from './storage';
@@ -41,6 +41,7 @@ let currencies: Record<string, string> = {};
 let hiddenCurrencies: Set<string> = getHiddenCurrencies();
 let debounceTimer: ReturnType<typeof setTimeout>;
 let restoringFromHistory = false;
+let lastSavedAmount = ''; // track to avoid duplicate history entries
 
 // Tippy instances
 let fromTip: Instance;
@@ -144,16 +145,22 @@ function onAmountInput(): void {
   setLastAmount(amountInput.value);
 }
 
-/** Save to history on blur (not every keystroke) */
-function onAmountBlur(): void {
+/** Save to history on blur — only if the value actually changed */
+function saveToHistory(): void {
   if (!currentRates) return;
   if (restoringFromHistory) return;
 
   const from = fromSelect.value;
   const to = toSelect.value;
-  const amount = parseFloat(amountInput.value);
+  const raw = amountInput.value;
+  const amount = parseFloat(raw);
 
   if (!amount || isNaN(amount) || amount <= 0) return;
+
+  // Skip if same conversion was already saved
+  const key = `${amount}|${from}|${to}`;
+  if (key === lastSavedAmount) return;
+  lastSavedAmount = key;
 
   const rate = getRate(currentRates.rates, from, to);
   const result = convert(amount, rate);
@@ -190,15 +197,35 @@ function renderHistory(): void {
         const tf = currencyFlag(e.to);
         return `<li data-index="${i}" class="history-item">
           <span class="conversion-text">${ff} ${formatAmount(e.amount)} ${e.from} → ${tf} ${formatAmount(e.result)} ${e.to}</span>
-          <span class="time-text">${timeAgo(e.timestamp)}</span>
+          <span class="history-right">
+            <span class="time-text">${timeAgo(e.timestamp)}</span>
+            <button class="history-delete" data-delete="${i}" aria-label="Delete">×</button>
+          </span>
         </li>`;
       }
     )
     .join('');
 }
 
+function deleteHistoryEntry(index: number): void {
+  removeHistoryEntry(index);
+  renderHistory();
+}
+
 function onHistoryClick(e: Event): void {
-  const li = (e.target as HTMLElement).closest('.history-item') as HTMLElement | null;
+  const target = e.target as HTMLElement;
+
+  // Handle delete button
+  const deleteBtn = target.closest('.history-delete') as HTMLElement | null;
+  if (deleteBtn) {
+    e.stopPropagation();
+    const idx = parseInt(deleteBtn.dataset.delete ?? '', 10);
+    deleteHistoryEntry(idx);
+    return;
+  }
+
+  // Handle row click to restore
+  const li = target.closest('.history-item') as HTMLElement | null;
   if (!li) return;
   const index = parseInt(li.dataset.index ?? '', 10);
   const entries = getHistory();
@@ -206,6 +233,7 @@ function onHistoryClick(e: Event): void {
   if (!entry) return;
 
   restoringFromHistory = true;
+  lastSavedAmount = `${entry.amount}|${entry.from}|${entry.to}`;
 
   fromSelect.value = entry.from;
   toSelect.value = entry.to;
@@ -357,7 +385,7 @@ export async function initUI(): Promise<void> {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(onAmountInput, 150);
   });
-  amountInput.addEventListener('blur', onAmountBlur);
+  amountInput.addEventListener('blur', saveToHistory);
 
   copyBtn.addEventListener('click', copyResult);
   ratesPill.addEventListener('click', refreshRates);
