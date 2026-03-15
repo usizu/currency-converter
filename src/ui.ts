@@ -220,8 +220,8 @@ function saveToHistory(): void {
 
 function updateBreakdown(rate: number, from: string): void {
   const to = toSelect.value;
-  breakdownFromHeader.textContent = from;
-  breakdownToHeader.textContent = to;
+  breakdownFromHeader.innerHTML = `<span class="flag">${currencyFlag(from)}</span> ${from}`;
+  breakdownToHeader.innerHTML = `<span class="flag">${currencyFlag(to)}</span> ${to}`;
   if (!currentRates) return;
 
   // Unit rate label: 1 FROM = X TO | 1 TO = Y FROM
@@ -475,9 +475,38 @@ export async function initUI(): Promise<void> {
     },
   });
 
-  // Dedicated slider trigger button
-  sliderTrigger.addEventListener('click', () => {
-    slider.show();
+  // Dedicated slider trigger button — tap to toggle, hold to activate
+  let triggerHoldTimer: ReturnType<typeof setTimeout> | null = null;
+  let triggerWasHeld = false;
+
+  sliderTrigger.addEventListener('pointerdown', () => {
+    triggerWasHeld = false;
+    triggerHoldTimer = setTimeout(() => {
+      triggerHoldTimer = null;
+      triggerWasHeld = true;
+      if (!slider.isActive()) {
+        slider.show();
+      }
+    }, 300);
+  });
+
+  sliderTrigger.addEventListener('pointerup', () => {
+    if (triggerHoldTimer) {
+      clearTimeout(triggerHoldTimer);
+      triggerHoldTimer = null;
+    }
+    if (!triggerWasHeld) {
+      slider.toggle();
+    }
+    triggerWasHeld = false;
+  });
+
+  sliderTrigger.addEventListener('pointercancel', () => {
+    if (triggerHoldTimer) {
+      clearTimeout(triggerHoldTimer);
+      triggerHoldTimer = null;
+    }
+    triggerWasHeld = false;
   });
 
   copyBtn.addEventListener('click', copyResult);
