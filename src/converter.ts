@@ -33,9 +33,11 @@ export function getBreakdown(
 }
 
 export function formatAmount(value: number): string {
-  if (value >= 1000) {
-    return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
   const decimals = value < 1 ? 4 : 2;
-  return value.toFixed(decimals);
+  // Round first to avoid floating-point artifacts (e.g. 23.6500000001)
+  const rounded = Math.round(value * Math.pow(10, decimals)) / Math.pow(10, decimals);
+  if (rounded >= 1000) {
+    return rounded.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  return rounded.toFixed(decimals);
 }
