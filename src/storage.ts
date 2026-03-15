@@ -98,7 +98,9 @@ export function setFontSize(pct: number): void {
 
 export function getHiddenCurrencies(): Set<string> {
   const arr = get<string[]>(KEYS.hidden);
-  return new Set(arr ?? []);
+  // Defensive: ensure we always return a proper Set even if stored data is corrupted
+  if (Array.isArray(arr)) return new Set(arr);
+  return new Set();
 }
 
 export function setHiddenCurrencies(hidden: Set<string>): void {

@@ -247,18 +247,28 @@ main.container {
   padding: 0.6rem 1.1rem 1rem;
   padding-bottom: calc(var(--bottom-bar-height) + 1rem);
   overflow-x: hidden;
+  background: transparent;
 }
 
 /* ===== Header ===== */
 header {
-  margin-bottom: 1rem;
-  /* Push converter area toward bottom of top third */
-  padding-top: calc(8vh);
+  margin-bottom: 0;
+  padding-top: 0;
 }
 
 header h1 {
   margin: 0;
   font-size: 1.35rem;
+}
+
+/* Spacer pushes converter area down toward thumb reach zone */
+.converter-spacer {
+  height: calc(6vh);
+}
+
+/* Global h2 bottom margin */
+h2 {
+  margin-bottom: 0.5rem;
 }
 
 /* ===== Bottom bar (refresh + settings) ===== */
@@ -479,6 +489,8 @@ header h1 {
   line-height: 1;
   border-radius: var(--pico-border-radius);
   transition: color 0.15s ease;
+  display: flex;
+  align-items: center;
 }
 
 .copy-btn:active {
@@ -489,30 +501,26 @@ header h1 {
   color: var(--t-success);
 }
 
-/* ===== Drag hint divot ===== */
-.drag-hint {
+/* ===== Slider trigger button ===== */
+.slider-trigger {
   display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 0.2rem 0 0;
-  cursor: grab;
+  width: 100%;
+  padding: 0.15rem 0;
+  margin: 0;
+  background: none;
+  border: none;
+  color: var(--t-muted);
+  opacity: 0.45;
+  cursor: pointer;
+  transition: opacity 0.15s ease, color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.drag-hint-dots {
-  display: flex;
-  gap: 3px;
-  opacity: 0.35;
-  transition: opacity 0.15s ease;
-}
-
-.drag-hint-dots span {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--t-muted);
-}
-
-.drag-hint:active .drag-hint-dots {
-  opacity: 0.7;
+.slider-trigger:active {
+  opacity: 0.85;
+  color: var(--t-accent);
 }
 
 /* ===== Amount slider (tap-hold) ===== */
@@ -549,7 +557,7 @@ header h1 {
   bottom: 0;
   background: var(--t-accent-bg);
   opacity: 0.25;
-  border-radius: 999px;
+  border-radius: 999px 4px 4px 999px;
   transition: width 0.03s linear;
 }
 
@@ -607,6 +615,11 @@ section {
 #breakdown table {
   margin-top: 0;
   margin-bottom: 0;
+  background: transparent !important;
+}
+
+#breakdown table * {
+  background: transparent !important;
 }
 
 #breakdown th,

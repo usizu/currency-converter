@@ -36,11 +36,15 @@ function generateNotches(min: number, max: number): number[] {
   return result;
 }
 
+export interface SliderHandle {
+  show: () => void;
+}
+
 export function initSlider(
   inputEl: HTMLInputElement,
   containerEl: HTMLElement,
   callbacks: SliderCallbacks
-): void {
+): SliderHandle {
   let sliderEl: HTMLDivElement | null = null;
   let holdTimer: ReturnType<typeof setTimeout> | null = null;
   let active = false;
@@ -243,4 +247,12 @@ export function initSlider(
   inputEl.addEventListener('focus', () => {
     if (active) hideSlider();
   });
+
+  return {
+    show() {
+      inputEl.blur();
+      showSlider();
+      renderSlider();
+    },
+  };
 }
