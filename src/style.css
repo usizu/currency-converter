@@ -16,9 +16,128 @@ html, body {
 }
 
 body {
-  background: #13171f;
   -webkit-user-select: none;
   user-select: none;
+}
+
+/* ===== Themes ===== */
+
+/* -- Midnight (default dark) -- */
+[data-app-theme="midnight"] {
+  --t-bg: #13171f;
+  --t-surface: #1a1f2b;
+  --t-card: #1e2430;
+  --t-text: #e2e8f0;
+  --t-muted: #8892a4;
+  --t-border: #2d3548;
+  --t-accent: #6c8cff;
+  --t-accent-bg: #4a6cf7;
+  --t-accent-text: #fff;
+  --t-accent-hover: #5a7bff;
+  --t-error-bg: #5e2028;
+  --t-error-text: #f8d7da;
+  --t-success: #34d399;
+  --t-danger: #ef4444;
+}
+
+/* -- Ocean -- */
+[data-app-theme="ocean"] {
+  --t-bg: #0f1923;
+  --t-surface: #152230;
+  --t-card: #1a2a3a;
+  --t-text: #d4e5f7;
+  --t-muted: #7a9bb5;
+  --t-border: #243a50;
+  --t-accent: #22d3ee;
+  --t-accent-bg: #0891b2;
+  --t-accent-text: #fff;
+  --t-accent-hover: #06b6d4;
+  --t-error-bg: #5e2028;
+  --t-error-text: #f8d7da;
+  --t-success: #34d399;
+  --t-danger: #ef4444;
+}
+
+/* -- Ember -- */
+[data-app-theme="ember"] {
+  --t-bg: #1a1210;
+  --t-surface: #251c18;
+  --t-card: #2c2220;
+  --t-text: #f0e0d6;
+  --t-muted: #a8907e;
+  --t-border: #3d2e28;
+  --t-accent: #f59e0b;
+  --t-accent-bg: #d97706;
+  --t-accent-text: #1a1210;
+  --t-accent-hover: #f59e0b;
+  --t-error-bg: #5e2028;
+  --t-error-text: #f8d7da;
+  --t-success: #34d399;
+  --t-danger: #ef4444;
+}
+
+/* -- Forest -- */
+[data-app-theme="forest"] {
+  --t-bg: #0f1a14;
+  --t-surface: #162420;
+  --t-card: #1c2e26;
+  --t-text: #d4e8dc;
+  --t-muted: #7da691;
+  --t-border: #283d32;
+  --t-accent: #34d399;
+  --t-accent-bg: #059669;
+  --t-accent-text: #fff;
+  --t-accent-hover: #10b981;
+  --t-error-bg: #5e2028;
+  --t-error-text: #f8d7da;
+  --t-success: #34d399;
+  --t-danger: #ef4444;
+}
+
+/* -- Daylight (light theme) -- */
+[data-app-theme="daylight"] {
+  --t-bg: #f5f7fa;
+  --t-surface: #ffffff;
+  --t-card: #ffffff;
+  --t-text: #1e293b;
+  --t-muted: #64748b;
+  --t-border: #e2e8f0;
+  --t-accent: #3b82f6;
+  --t-accent-bg: #2563eb;
+  --t-accent-text: #fff;
+  --t-accent-hover: #3b82f6;
+  --t-error-bg: #fee2e2;
+  --t-error-text: #991b1b;
+  --t-success: #16a34a;
+  --t-danger: #dc2626;
+}
+
+/* Apply theme variables to PicoCSS + custom elements */
+[data-app-theme] {
+  --pico-background-color: var(--t-bg);
+  --pico-color: var(--t-text);
+  --pico-muted-color: var(--t-muted);
+  --pico-muted-border-color: var(--t-border);
+  --pico-card-background-color: var(--t-card);
+  --pico-primary: var(--t-accent);
+  --pico-primary-background: var(--t-accent-bg);
+  --pico-primary-inverse: var(--t-accent-text);
+  --pico-primary-hover: var(--t-accent-hover);
+  --pico-primary-hover-background: var(--t-accent-hover);
+  --pico-ins-color: var(--t-success);
+  --pico-del-color: var(--t-danger);
+  --pico-form-element-background-color: var(--t-surface);
+  --pico-form-element-border-color: var(--t-border);
+  --pico-form-element-color: var(--t-text);
+  --pico-form-element-focus-color: var(--t-accent);
+  --pico-secondary: var(--t-muted);
+  --pico-secondary-hover: var(--t-text);
+  color: var(--t-text);
+}
+
+body {
+  background: var(--t-bg);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 main.container {
@@ -47,14 +166,15 @@ header h1 {
   z-index: 100;
   height: var(--bottom-bar-height);
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  background: #1a1f2b;
-  border-top: 1px solid var(--pico-muted-border-color);
+  background: var(--t-surface);
+  border-top: 1px solid var(--t-border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-left: 1rem;
   padding-right: 1rem;
   gap: 0.5rem;
+  transition: background-color 0.25s ease;
 }
 
 /* ===== Pill (refresh) ===== */
@@ -65,13 +185,13 @@ header h1 {
   padding: 0.25rem 0.6rem;
   border-radius: 999px;
   font-size: 0.72rem;
-  background: var(--pico-primary-background);
-  color: var(--pico-primary-inverse);
+  background: var(--t-accent-bg);
+  color: var(--t-accent-text);
   cursor: pointer;
   font-weight: 500;
   white-space: nowrap;
   user-select: none;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.15s ease, background-color 0.25s ease;
   flex-shrink: 0;
   border: none;
   line-height: 1.4;
@@ -82,7 +202,7 @@ header h1 {
 }
 
 .pill[data-stale="true"] {
-  background: var(--pico-del-color);
+  background: var(--t-danger);
 }
 
 .pill[aria-busy="true"] {
@@ -105,7 +225,7 @@ header h1 {
 
 /* ===== Version (inside bottom bar) ===== */
 .version-label {
-  color: var(--pico-muted-color);
+  color: var(--t-muted);
   opacity: 0.4;
   font-size: 0.5rem;
 }
@@ -118,8 +238,8 @@ header h1 {
   padding: 0.4rem 0.65rem;
   margin-bottom: 0.75rem;
   border-radius: var(--pico-border-radius);
-  background: #5e2028;
-  color: #f8d7da;
+  background: var(--t-error-bg);
+  color: var(--t-error-text);
   font-size: 0.78rem;
 }
 
@@ -190,7 +310,7 @@ header h1 {
   position: absolute;
   left: 0.5rem;
   font-size: 0.88rem;
-  color: var(--pico-muted-color);
+  color: var(--t-muted);
   pointer-events: none;
   user-select: none;
   z-index: 1;
@@ -210,7 +330,7 @@ header h1 {
 
 .conversion-arrow {
   flex-shrink: 0;
-  color: var(--pico-muted-color);
+  color: var(--t-muted);
   font-size: 0.95rem;
 }
 
@@ -231,8 +351,8 @@ header h1 {
 .result-value {
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--pico-primary);
-  transition: opacity 0.15s ease;
+  color: var(--t-accent);
+  transition: opacity 0.15s ease, color 0.25s ease;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -247,7 +367,7 @@ header h1 {
   flex-shrink: 0;
   background: none;
   border: none;
-  color: var(--pico-muted-color);
+  color: var(--t-muted);
   font-size: 0.95rem;
   cursor: pointer;
   padding: 0.15rem;
@@ -258,11 +378,11 @@ header h1 {
 }
 
 .copy-btn:active {
-  color: var(--pico-primary);
+  color: var(--t-accent);
 }
 
 .copy-btn.copied {
-  color: var(--pico-ins-color);
+  color: var(--t-success);
 }
 
 /* ===== Sections ===== */
@@ -326,7 +446,7 @@ section {
   height: var(--history-row);
   box-sizing: border-box;
   padding: 0 0.25rem;
-  border-bottom: 1px solid var(--pico-muted-border-color);
+  border-bottom: 1px solid var(--t-border);
   font-size: 0.75rem;
   display: flex;
   justify-content: space-between;
@@ -344,8 +464,8 @@ section {
 }
 
 .history-item:active {
-  background: var(--pico-primary-background);
-  color: var(--pico-primary-inverse);
+  background: var(--t-accent-bg);
+  color: var(--t-accent-text);
 }
 
 .history-list .conversion-text {
@@ -366,7 +486,7 @@ section {
 }
 
 .history-list .time-text {
-  color: var(--pico-muted-color);
+  color: var(--t-muted);
   font-size: 0.62rem;
   white-space: nowrap;
 }
@@ -374,7 +494,7 @@ section {
 .history-delete {
   background: none;
   border: none;
-  color: var(--pico-muted-color);
+  color: var(--t-muted);
   font-size: 0.9rem;
   cursor: pointer;
   padding: 0 0.1rem;
@@ -386,11 +506,11 @@ section {
 
 .history-delete:active {
   opacity: 1;
-  color: var(--pico-del-color);
+  color: var(--t-danger);
 }
 
 .empty-state {
-  color: var(--pico-muted-color);
+  color: var(--t-muted);
   text-align: center;
   justify-content: center !important;
   cursor: default !important;
@@ -413,7 +533,7 @@ section {
 }
 
 .settings-content {
-  background: var(--pico-card-background-color);
+  background: var(--t-card);
   border-radius: 1rem 1rem 0 0;
   width: 100%;
   max-width: 30rem;
@@ -422,6 +542,7 @@ section {
   flex-direction: column;
   padding: 1.2rem;
   padding-bottom: calc(1.2rem + env(safe-area-inset-bottom, 0px));
+  transition: background-color 0.25s ease;
 }
 
 .settings-header {
@@ -449,7 +570,15 @@ section {
 .settings-section h3 {
   font-size: 0.85rem;
   margin-bottom: 0.35rem;
-  color: var(--pico-muted-color);
+  color: var(--t-muted);
+}
+
+/* ===== Theme selector ===== */
+.theme-select {
+  width: 100%;
+  margin: 0;
+  font-size: 0.82rem;
+  padding: 0.38rem 0.45rem;
 }
 
 .font-size-control {
@@ -484,7 +613,7 @@ section {
   align-items: center;
   gap: 0.5rem;
   padding: 0.35rem 0.25rem;
-  border-bottom: 1px solid var(--pico-muted-border-color);
+  border-bottom: 1px solid var(--t-border);
   font-size: 0.85rem;
 }
 
@@ -527,8 +656,8 @@ section {
 
 .crypto-tag {
   font-size: 0.6rem;
-  background: var(--pico-muted-border-color);
-  color: var(--pico-muted-color);
+  background: var(--t-border);
+  color: var(--t-muted);
   padding: 0.05rem 0.3rem;
   border-radius: 999px;
   vertical-align: middle;

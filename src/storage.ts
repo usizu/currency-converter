@@ -9,6 +9,7 @@ const KEYS = {
   hidden: 'cc_hidden',
   fontSize: 'cc_fontsize',
   showCrypto: 'cc_showcrypto',
+  theme: 'cc_theme',
 } as const;
 
 const MAX_HISTORY = 50;
@@ -108,4 +109,12 @@ export function getShowCrypto(): boolean {
 
 export function setShowCrypto(show: boolean): void {
   localStorage.setItem(KEYS.showCrypto, String(show));
+}
+
+export function getTheme(): string {
+  return localStorage.getItem(KEYS.theme) ?? 'midnight';
+}
+
+export function setTheme(theme: string): void {
+  localStorage.setItem(KEYS.theme, theme);
 }
