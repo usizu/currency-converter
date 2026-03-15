@@ -14,7 +14,7 @@ body {
 
 main.container {
   max-width: 480px;
-  padding: clamp(0.5rem, 2vw, 0.75rem) clamp(0.75rem, 3vw, 1rem) 1rem;
+  padding: clamp(0.75rem, 2.5vw, 1rem) clamp(1rem, 4vw, 1.25rem) 1.25rem;
   overflow-x: hidden;
 }
 
@@ -404,9 +404,9 @@ section {
 /* ===== Safe area ===== */
 @supports (padding-top: env(safe-area-inset-top)) {
   main.container {
-    padding-top: calc(clamp(0.5rem, 2vw, 0.75rem) + env(safe-area-inset-top));
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
-    padding-left: calc(clamp(0.75rem, 3vw, 1rem) + env(safe-area-inset-left));
-    padding-right: calc(clamp(0.75rem, 3vw, 1rem) + env(safe-area-inset-right));
+    padding-top: calc(clamp(0.75rem, 2.5vw, 1rem) + env(safe-area-inset-top));
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+    padding-left: calc(clamp(1rem, 4vw, 1.25rem) + env(safe-area-inset-left));
+    padding-right: calc(clamp(1rem, 4vw, 1.25rem) + env(safe-area-inset-right));
   }
 }

@@ -42,12 +42,10 @@ let debounceTimer: ReturnType<typeof setTimeout>;
 let restoringFromHistory = false;
 
 // Tippy instances
-let pillTip: Instance;
 let fromTip: Instance;
 let toTip: Instance;
 
 function initTooltips() {
-  pillTip = tippy(ratesPill, { content: '', placement: 'bottom' }) as unknown as Instance;
   fromTip = tippy(fromSelect, { content: '', placement: 'top', trigger: 'focus' }) as unknown as Instance;
   toTip = tippy(toSelect, { content: '', placement: 'top', trigger: 'focus' }) as unknown as Instance;
 }
@@ -142,16 +140,19 @@ function updateDisplay(): void {
 
 function onAmountInput(): void {
   updateDisplay();
+  setLastAmount(amountInput.value);
+}
 
+/** Save to history on blur (not every keystroke) */
+function onAmountBlur(): void {
   if (!currentRates) return;
+  if (restoringFromHistory) return;
+
   const from = fromSelect.value;
   const to = toSelect.value;
   const amount = parseFloat(amountInput.value);
 
-  setLastAmount(amountInput.value);
-
   if (!amount || isNaN(amount) || amount <= 0) return;
-  if (restoringFromHistory) return;
 
   const rate = getRate(currentRates.rates, from, to);
   const result = convert(amount, rate);
@@ -228,9 +229,6 @@ function updatePill(): void {
   if (!currentRates) return;
   const ago = timeAgo(currentRates.fetchedAt);
   ratesPill.innerHTML = `↻ ${ago}`;
-  pillTip.setContent(
-    `ECB rates from ${currentRates.date}\nFetched: ${new Date(currentRates.fetchedAt).toLocaleString()}`
-  );
   const stale = Date.now() - currentRates.fetchedAt > 2 * 60 * 60 * 1000;
   ratesPill.setAttribute('data-stale', String(stale));
 }
@@ -343,6 +341,7 @@ export async function initUI(): Promise<void> {
     clearTimeout(debounceTimer);
     debounceTimer = setTimeout(onAmountInput, 150);
   });
+  amountInput.addEventListener('blur', onAmountBlur);
 
   ratesPill.addEventListener('click', refreshRates);
   errorDismiss.addEventListener('click', hideError);
