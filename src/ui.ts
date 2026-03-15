@@ -332,21 +332,38 @@ function updatePill(): void {
   ratesPill.setAttribute('data-stale', String(stale));
 }
 
+const MIN_BUSY_DURATION = 1000; // ms — minimum time to show "updating…"
+
 async function refreshRates(): Promise<void> {
+  const busyStart = Date.now();
+  ratesPill.classList.add('pill-busy');
+  // Brief fade-out before swapping content
+  await new Promise((r) => setTimeout(r, 150));
   ratesPill.innerHTML = '<span class="spinner">↻</span> updating…';
   ratesPill.setAttribute('aria-busy', 'true');
+  ratesPill.classList.remove('pill-busy');
+
   try {
     currentRates = await fetchRates(fromSelect.value);
     hideError();
-    updatePill();
-    updateDisplay();
   } catch (err) {
     console.error('Failed to refresh rates:', err);
     showError(`Failed to refresh rates: ${err instanceof Error ? err.message : err}`);
-    updatePill();
-  } finally {
-    ratesPill.removeAttribute('aria-busy');
   }
+
+  // Ensure busy state is shown for at least MIN_BUSY_DURATION
+  const elapsed = Date.now() - busyStart;
+  if (elapsed < MIN_BUSY_DURATION) {
+    await new Promise((r) => setTimeout(r, MIN_BUSY_DURATION - elapsed));
+  }
+
+  // Fade out busy content, swap to idle, fade back in
+  ratesPill.classList.add('pill-busy');
+  await new Promise((r) => setTimeout(r, 150));
+  ratesPill.removeAttribute('aria-busy');
+  updatePill();
+  updateDisplay();
+  ratesPill.classList.remove('pill-busy');
 }
 
 function onPairChange(): void {
