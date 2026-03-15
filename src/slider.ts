@@ -80,7 +80,7 @@ export function initSlider(
   containerEl: HTMLElement,
   callbacks: SliderCallbacks
 ): SliderHandle {
-  const PRECISION_THRESHOLD = 40; // px below track to enter precision mode
+  const PRECISION_THRESHOLD = 50; // px below slider bottom to enter precision mode
   const PRECISION_SCALE = 5;     // how much finer control becomes
 
   let sliderEl: HTMLDivElement | null = null;
@@ -95,7 +95,7 @@ export function initSlider(
   let precisionMode = false;
   let precisionAnchorX = 0;
   let precisionAnchorValue = 0;
-  let trackCenterY = 0;
+  let sliderBottomY = 0;
 
   function buildSlider(): HTMLDivElement {
     const el = document.createElement('div');
@@ -199,12 +199,11 @@ export function initSlider(
     renderNotches();
     renderSlider();
     active = true;
-    // Capture track center Y for precision mode detection
+    // Capture slider bottom Y for precision mode detection
     requestAnimationFrame(() => {
       if (sliderEl) {
-        const track = sliderEl.querySelector('.slider-track') as HTMLElement;
-        const rect = track.getBoundingClientRect();
-        trackCenterY = rect.top + rect.height / 2;
+        const rect = sliderEl.getBoundingClientRect();
+        sliderBottomY = rect.bottom;
       }
     });
   }
@@ -255,7 +254,7 @@ export function initSlider(
 
   function updateFromPointer(clientX: number, clientY: number): void {
     if (!sliderEl) return;
-    const deltaY = clientY - trackCenterY;
+    const deltaY = clientY - sliderBottomY;
     if (deltaY > PRECISION_THRESHOLD && !precisionMode) {
       setPrecisionMode(true, clientX);
     } else if (deltaY <= PRECISION_THRESHOLD && precisionMode) {

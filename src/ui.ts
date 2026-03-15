@@ -324,24 +324,33 @@ function copyResult(): void {
 
 // ===== Pill & refresh =====
 
+const pillIcon = ratesPill.querySelector('.pill-icon') as HTMLSpanElement;
+const pillText = ratesPill.querySelector('.pill-text') as HTMLSpanElement;
+
 function updatePill(): void {
   if (!currentRates) return;
   const ago = timeAgo(currentRates.fetchedAt);
-  ratesPill.innerHTML = `↻ ${ago}`;
+  pillIcon.classList.remove('spinner');
+  pillText.textContent = ago;
   const stale = Date.now() - currentRates.fetchedAt > 2 * 60 * 60 * 1000;
   ratesPill.setAttribute('data-stale', String(stale));
 }
 
-const MIN_BUSY_DURATION = 1000; // ms — minimum time to show "updating…"
+const MIN_BUSY_DURATION = 1000;
+
+function pillFade(out: boolean): Promise<void> {
+  ratesPill.classList.toggle('pill-busy', out);
+  return new Promise((r) => setTimeout(r, 150));
+}
 
 async function refreshRates(): Promise<void> {
   const busyStart = Date.now();
-  ratesPill.classList.add('pill-busy');
-  // Brief fade-out before swapping content
-  await new Promise((r) => setTimeout(r, 150));
-  ratesPill.innerHTML = '<span class="spinner">↻</span> updating…';
+
+  await pillFade(true);
+  pillIcon.classList.add('spinner');
+  pillText.textContent = 'updating…';
   ratesPill.setAttribute('aria-busy', 'true');
-  ratesPill.classList.remove('pill-busy');
+  await pillFade(false);
 
   try {
     currentRates = await fetchRates(fromSelect.value);
@@ -351,19 +360,16 @@ async function refreshRates(): Promise<void> {
     showError(`Failed to refresh rates: ${err instanceof Error ? err.message : err}`);
   }
 
-  // Ensure busy state is shown for at least MIN_BUSY_DURATION
   const elapsed = Date.now() - busyStart;
   if (elapsed < MIN_BUSY_DURATION) {
     await new Promise((r) => setTimeout(r, MIN_BUSY_DURATION - elapsed));
   }
 
-  // Fade out busy content, swap to idle, fade back in
-  ratesPill.classList.add('pill-busy');
-  await new Promise((r) => setTimeout(r, 150));
+  await pillFade(true);
   ratesPill.removeAttribute('aria-busy');
   updatePill();
   updateDisplay();
-  ratesPill.classList.remove('pill-busy');
+  await pillFade(false);
 }
 
 function onPairChange(): void {
@@ -371,10 +377,12 @@ function onPairChange(): void {
   setSelectedPair(pair);
   updateSymbolPrefix();
 
+  // Always update display immediately with whatever rates we have
+  updateDisplay();
+
+  // Fetch new rates in background if base currency changed
   if (currentRates && currentRates.base !== pair.from) {
     refreshRates();
-  } else {
-    updateDisplay();
   }
 }
 
