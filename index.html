@@ -16,10 +16,10 @@
         <div class="title-row">
           <h1>Currency Converter</h1>
           <div class="title-actions">
-            <span id="rates-pill" class="pill" role="button" tabindex="0">
-              ↻ Loading…
+            <span id="rates-pill" class="pill" role="button" tabindex="0" aria-busy="true">
+              <span class="spinner">↻</span> Loading…
             </span>
-            <button id="settings-btn" class="pill settings-pill" data-tooltip="Currency settings">
+            <button id="settings-btn" class="pill settings-pill">
               ⚙
             </button>
           </div>
@@ -34,7 +34,7 @@
       <section id="converter">
         <div class="currency-row">
           <select id="from-currency" aria-label="From currency"></select>
-          <button id="swap-btn" class="swap-btn outline contrast" data-tooltip="Swap currencies">⇄</button>
+          <button id="swap-btn" class="swap-btn outline contrast">⇄</button>
           <select id="to-currency" aria-label="To currency"></select>
         </div>
 
@@ -83,7 +83,7 @@
       </section>
 
       <footer>
-        <small id="app-version" class="version-label">v8</small>
+        <small id="app-version" class="version-label">v9</small>
       </footer>
     </main>
 
@@ -92,6 +92,15 @@
         <div class="settings-header">
           <h2>Currencies</h2>
           <button id="settings-close" class="error-dismiss">&times;</button>
+        </div>
+        <div class="settings-section">
+          <h3>Font Size</h3>
+          <div class="font-size-control">
+            <span>A</span>
+            <input type="range" id="font-size-slider" min="80" max="130" step="5" value="100" />
+            <span>A</span>
+            <span id="font-size-label" class="font-size-label">100%</span>
+          </div>
         </div>
         <div class="settings-actions">
           <button id="settings-all" class="outline small-btn">Select all</button>
