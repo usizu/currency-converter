@@ -18,6 +18,9 @@ const breakdownToHeader = document.getElementById('breakdown-to-header') as HTML
 const breakdownBody = document.getElementById('breakdown-body') as HTMLTableSectionElement;
 const historyList = document.getElementById('history-list') as HTMLUListElement;
 const clearHistoryBtn = document.getElementById('clear-history-btn') as HTMLButtonElement;
+const errorBanner = document.getElementById('error-banner') as HTMLDivElement;
+const errorMessage = document.getElementById('error-message') as HTMLSpanElement;
+const errorDismiss = document.getElementById('error-dismiss') as HTMLButtonElement;
 
 let currentRates: CachedRates | null = null;
 let currencies: Record<string, string> = {};
@@ -32,6 +35,15 @@ function initTooltips() {
   pillTip = tippy(ratesPill, { content: '', placement: 'bottom' }) as unknown as Instance;
   fromTip = tippy(fromSelect, { content: '', placement: 'top', trigger: 'focus' }) as unknown as Instance;
   toTip = tippy(toSelect, { content: '', placement: 'top', trigger: 'focus' }) as unknown as Instance;
+}
+
+function showError(msg: string): void {
+  errorMessage.textContent = msg;
+  errorBanner.hidden = false;
+}
+
+function hideError(): void {
+  errorBanner.hidden = true;
 }
 
 function updateCurrencyTooltip(el: HTMLSelectElement) {
@@ -142,6 +154,7 @@ async function refreshRates(): Promise<void> {
     updateResult();
   } catch (err) {
     console.error('Failed to refresh rates:', err);
+    showError(`Failed to refresh rates: ${err instanceof Error ? err.message : err}`);
   } finally {
     refreshBtn.removeAttribute('aria-busy');
     refreshBtn.textContent = '↻ Refresh Rates';
@@ -181,6 +194,7 @@ export async function initUI(): Promise<void> {
   });
 
   refreshBtn.addEventListener('click', refreshRates);
+  errorDismiss.addEventListener('click', hideError);
   clearHistoryBtn.addEventListener('click', () => {
     clearHistory();
     renderHistory();
@@ -192,13 +206,16 @@ export async function initUI(): Promise<void> {
     populateCurrencies(data);
   } catch (err) {
     console.error('Failed to load currencies:', err);
+    showError(`Failed to load currencies: ${err instanceof Error ? err.message : err}`);
   }
 
   // Load rates
   try {
     currentRates = await fetchRates(fromSelect.value);
+    hideError();
   } catch (err) {
     console.error('Failed to load rates:', err);
+    showError(`Failed to load rates: ${err instanceof Error ? err.message : err}`);
   }
 
   updatePill();
