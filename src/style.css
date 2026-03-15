@@ -20,7 +20,7 @@ body {
   user-select: none;
 }
 
-/* ===== Themes ===== */
+/* ===== Themes (Dark variants) ===== */
 
 /* -- Midnight (default dark) -- */
 [data-app-theme="midnight"] {
@@ -94,8 +94,95 @@ body {
   --t-danger: #ef4444;
 }
 
-/* -- Daylight (light theme) -- */
+/* -- Daylight -- */
 [data-app-theme="daylight"] {
+  --t-bg: #1a1d24;
+  --t-surface: #22262f;
+  --t-card: #262b35;
+  --t-text: #e0e4ea;
+  --t-muted: #8892a4;
+  --t-border: #333a48;
+  --t-accent: #3b82f6;
+  --t-accent-bg: #2563eb;
+  --t-accent-text: #fff;
+  --t-accent-hover: #3b82f6;
+  --t-error-bg: #5e2028;
+  --t-error-text: #f8d7da;
+  --t-success: #34d399;
+  --t-danger: #ef4444;
+}
+
+/* ===== Themes (Light variants) ===== */
+
+[data-app-theme="midnight"][data-theme="light"] {
+  --t-bg: #f1f3f9;
+  --t-surface: #ffffff;
+  --t-card: #ffffff;
+  --t-text: #1e2433;
+  --t-muted: #6b7894;
+  --t-border: #d5dbe8;
+  --t-accent: #5570e6;
+  --t-accent-bg: #4a60d4;
+  --t-accent-text: #fff;
+  --t-accent-hover: #6080f0;
+  --t-error-bg: #fee2e2;
+  --t-error-text: #991b1b;
+  --t-success: #16a34a;
+  --t-danger: #dc2626;
+}
+
+[data-app-theme="ocean"][data-theme="light"] {
+  --t-bg: #eef6fa;
+  --t-surface: #ffffff;
+  --t-card: #ffffff;
+  --t-text: #122030;
+  --t-muted: #5a7f9a;
+  --t-border: #c8dce8;
+  --t-accent: #0891b2;
+  --t-accent-bg: #0e7490;
+  --t-accent-text: #fff;
+  --t-accent-hover: #06b6d4;
+  --t-error-bg: #fee2e2;
+  --t-error-text: #991b1b;
+  --t-success: #16a34a;
+  --t-danger: #dc2626;
+}
+
+[data-app-theme="ember"][data-theme="light"] {
+  --t-bg: #faf6f2;
+  --t-surface: #ffffff;
+  --t-card: #ffffff;
+  --t-text: #2a1a12;
+  --t-muted: #8a7060;
+  --t-border: #e8dcd0;
+  --t-accent: #d97706;
+  --t-accent-bg: #b45309;
+  --t-accent-text: #fff;
+  --t-accent-hover: #f59e0b;
+  --t-error-bg: #fee2e2;
+  --t-error-text: #991b1b;
+  --t-success: #16a34a;
+  --t-danger: #dc2626;
+}
+
+[data-app-theme="forest"][data-theme="light"] {
+  --t-bg: #eef8f2;
+  --t-surface: #ffffff;
+  --t-card: #ffffff;
+  --t-text: #122a1c;
+  --t-muted: #5a8a70;
+  --t-border: #c0ddd0;
+  --t-accent: #059669;
+  --t-accent-bg: #047857;
+  --t-accent-text: #fff;
+  --t-accent-hover: #10b981;
+  --t-error-bg: #fee2e2;
+  --t-error-text: #991b1b;
+  --t-success: #16a34a;
+  --t-danger: #dc2626;
+}
+
+[data-app-theme="daylight"][data-theme="light"] {
   --t-bg: #f5f7fa;
   --t-surface: #ffffff;
   --t-card: #ffffff;
@@ -133,6 +220,21 @@ body {
   --pico-secondary: var(--t-muted);
   --pico-secondary-hover: var(--t-text);
   color: var(--t-text);
+}
+
+/* Force theme colors on form controls — PicoCSS dark mode overrides with high specificity */
+[data-app-theme] select,
+[data-app-theme] input:not([type="checkbox"]):not([type="radio"]),
+[data-app-theme] textarea {
+  background-color: var(--t-surface) !important;
+  border-color: var(--t-border) !important;
+  color: var(--t-text) !important;
+}
+[data-app-theme] select:focus,
+[data-app-theme] input:not([type="checkbox"]):not([type="radio"]):focus,
+[data-app-theme] textarea:focus {
+  border-color: var(--t-accent) !important;
+  --pico-focus-color: var(--t-accent);
 }
 
 body {
@@ -387,6 +489,32 @@ header h1 {
   color: var(--t-success);
 }
 
+/* ===== Drag hint divot ===== */
+.drag-hint {
+  display: flex;
+  justify-content: center;
+  padding: 0.2rem 0 0;
+  cursor: grab;
+}
+
+.drag-hint-dots {
+  display: flex;
+  gap: 3px;
+  opacity: 0.35;
+  transition: opacity 0.15s ease;
+}
+
+.drag-hint-dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--t-muted);
+}
+
+.drag-hint:active .drag-hint-dots {
+  opacity: 0.7;
+}
+
 /* ===== Amount slider (tap-hold) ===== */
 .amount-slider {
   display: none;
@@ -457,9 +585,17 @@ header h1 {
   position: relative;
 }
 
+/* ===== Flag emoji fixed-width ===== */
+.flag {
+  display: inline-block;
+  width: 1.4em;
+  text-align: center;
+  flex-shrink: 0;
+}
+
 /* ===== Sections ===== */
 section {
-  margin-bottom: 1rem;
+  margin-bottom: 1.8rem;
 }
 
 /* ===== Breakdown ===== */
@@ -636,7 +772,7 @@ section {
 }
 
 .settings-section {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .settings-section h3 {
@@ -651,6 +787,44 @@ section {
   margin: 0;
   font-size: 0.82rem;
   padding: 0.38rem 0.45rem;
+}
+
+/* ===== Theme mode controls ===== */
+.theme-mode-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.mode-toggle {
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  color: var(--t-text);
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+
+.mode-toggle:active {
+  background: var(--t-accent-bg);
+  color: var(--t-accent-text);
+}
+
+.system-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.system-toggle-label input[type="checkbox"] {
+  margin: 0;
 }
 
 .font-size-control {

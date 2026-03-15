@@ -7,6 +7,8 @@ import {
   getFontSize, setFontSize,
   getShowCrypto, setShowCrypto,
   getTheme, setTheme,
+  getMode, setMode,
+  getSystemTheme, setSystemTheme,
 } from './storage';
 import { getRate, getBreakdown, convert, formatAmount } from './converter';
 import { timeAgo } from './time';
@@ -44,6 +46,8 @@ const fontSizeLabel = document.getElementById('font-size-label') as HTMLSpanElem
 const cryptoToggle = document.getElementById('crypto-toggle') as HTMLInputElement;
 const settingsSearch = document.getElementById('settings-search') as HTMLInputElement;
 const themeSelect = document.getElementById('theme-select') as HTMLSelectElement;
+const modeToggle = document.getElementById('mode-toggle') as HTMLButtonElement;
+const systemToggle = document.getElementById('system-toggle') as HTMLInputElement;
 
 let currentRates: CachedRates | null = null;
 let currencies: Record<string, string> = {};
@@ -52,24 +56,49 @@ let showCrypto: boolean = getShowCrypto();
 let debounceTimer: ReturnType<typeof setTimeout>;
 let restoringFromHistory = false;
 let lastSavedAmount = ''; // track to avoid duplicate history entries
+let currentMode = 'dark'; // current resolved mode
 
-
-const THEME_META: Record<string, string> = {
+const THEME_META_DARK: Record<string, string> = {
   midnight: '#13171f',
   ocean: '#0f1923',
   ember: '#1a1210',
   forest: '#0f1a14',
+  daylight: '#1a1d24',
+};
+
+const THEME_META_LIGHT: Record<string, string> = {
+  midnight: '#f1f3f9',
+  ocean: '#eef6fa',
+  ember: '#faf6f2',
+  forest: '#eef8f2',
   daylight: '#f5f7fa',
 };
 
-function applyTheme(theme: string): void {
+function resolveMode(): string {
+  if (getSystemTheme()) {
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  return getMode();
+}
+
+function applyTheme(theme: string, mode?: string): void {
+  if (mode === undefined) mode = resolveMode();
+  currentMode = mode;
   document.documentElement.setAttribute('data-app-theme', theme);
-  // Keep PicoCSS base mode in sync
-  document.documentElement.setAttribute('data-theme', theme === 'daylight' ? 'light' : 'dark');
+  document.documentElement.setAttribute('data-theme', mode);
   // Update meta theme-color for mobile browser chrome
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', THEME_META[theme] ?? THEME_META.midnight);
+  const colors = mode === 'light' ? THEME_META_LIGHT : THEME_META_DARK;
+  if (meta) meta.setAttribute('content', colors[theme] ?? THEME_META_DARK.midnight);
   themeSelect.value = theme;
+  updateModeToggle();
+}
+
+function updateModeToggle(): void {
+  const isLight = currentMode === 'light';
+  modeToggle.textContent = isLight ? '☀️ Light' : '🌙 Dark';
+  modeToggle.disabled = getSystemTheme();
+  modeToggle.style.opacity = getSystemTheme() ? '0.5' : '1';
 }
 
 function applyFontSize(pct: number): void {
@@ -100,13 +129,11 @@ function updateSymbolPrefix(): void {
   });
 }
 
-// ===== Currency tooltips =====
-
 // ===== Currency option text =====
 
 function optionText(code: string, name: string): string {
   const flag = currencyFlag(code);
-  return flag ? `${flag} ${code} — ${name}` : `${code} — ${name}`;
+  return `${flag} ${code} — ${name}`;
 }
 
 // ===== Populate selects =====
@@ -216,7 +243,7 @@ function renderHistory(): void {
         const ff = currencyFlag(e.from);
         const tf = currencyFlag(e.to);
         return `<li data-index="${i}" class="history-item">
-          <span class="conversion-text">${ff} ${formatAmount(e.amount)} ${e.from} → ${tf} ${formatAmount(e.result)} ${e.to}</span>
+          <span class="conversion-text"><span class="flag">${ff}</span> ${formatAmount(e.amount)} ${e.from} → <span class="flag">${tf}</span> ${formatAmount(e.result)} ${e.to}</span>
           <span class="history-right">
             <span class="time-text">${timeAgo(e.timestamp)}</span>
             <button class="history-delete" data-delete="${i}" aria-label="Delete">×</button>
@@ -329,6 +356,8 @@ function openSettings(): void {
   settingsSearch.value = '';
   cryptoToggle.checked = showCrypto;
   themeSelect.value = getTheme();
+  systemToggle.checked = getSystemTheme();
+  updateModeToggle();
   renderSettings();
   settingsPanel.hidden = false;
 }
@@ -360,7 +389,7 @@ function renderSettings(filter = ''): void {
       const tag = isFiat(code) ? '' : ' <span class="crypto-tag">crypto</span>';
       return `<li>
         <input type="checkbox" id="cur-${code}" value="${code}" ${checked} />
-        <label for="cur-${code}" class="currency-label">${flag} ${code} — ${currencies[code]}${tag}</label>
+        <label for="cur-${code}" class="currency-label"><span class="flag">${flag}</span> ${code} — ${currencies[code]}${tag}</label>
       </li>`;
     })
     .join('');
@@ -397,7 +426,8 @@ function settingsClearAll(): void {
 
 export async function initUI(): Promise<void> {
   // Apply saved theme & font size
-  applyTheme(getTheme());
+  const theme = getTheme();
+  applyTheme(theme);
   applyFontSize(getFontSize());
 
   const savedAmount = getLastAmount();
@@ -470,14 +500,36 @@ export async function initUI(): Promise<void> {
     renderSettings(settingsSearch.value);
   });
   themeSelect.addEventListener('change', () => {
-    const theme = themeSelect.value;
-    applyTheme(theme);
-    setTheme(theme);
+    const t = themeSelect.value;
+    applyTheme(t);
+    setTheme(t);
   });
   fontSizeSlider.addEventListener('input', () => {
     const pct = parseInt(fontSizeSlider.value, 10);
     applyFontSize(pct);
     setFontSize(pct);
+  });
+
+  // Mode toggle (dark/light)
+  modeToggle.addEventListener('click', () => {
+    if (getSystemTheme()) return; // disabled when system is on
+    const newMode = currentMode === 'dark' ? 'light' : 'dark';
+    setMode(newMode);
+    applyTheme(getTheme(), newMode);
+  });
+
+  // System toggle
+  systemToggle.addEventListener('change', () => {
+    const on = systemToggle.checked;
+    setSystemTheme(on);
+    applyTheme(getTheme());
+  });
+
+  // Listen for OS dark/light changes
+  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+    if (getSystemTheme()) {
+      applyTheme(getTheme());
+    }
   });
 
   // Load data

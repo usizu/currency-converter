@@ -1,7 +1,7 @@
 // Map currency codes to ISO 3166-1 alpha-2 country codes for flag emoji
 // Most currencies map to one primary country; some are shared (EUR, XAF, etc.)
 const CURRENCY_TO_COUNTRY: Record<string, string> = {
-  AED: 'AE', AFN: 'AF', ALL: 'AL', AMD: 'AM', ANG: 'AN', AOA: 'AO',
+  AED: 'AE', AFN: 'AF', ALL: 'AL', AMD: 'AM', AOA: 'AO',
   ARS: 'AR', AUD: 'AU', AWG: 'AW', AZN: 'AZ', BAM: 'BA', BBD: 'BB',
   BDT: 'BD', BGN: 'BG', BHD: 'BH', BIF: 'BI', BMD: 'BM', BND: 'BN',
   BOB: 'BO', BRL: 'BR', BSD: 'BS', BTN: 'BT', BWP: 'BW', BYN: 'BY',
@@ -27,21 +27,31 @@ const CURRENCY_TO_COUNTRY: Record<string, string> = {
   UGX: 'UG', USD: 'US', UYU: 'UY', UZS: 'UZ', VES: 'VE', VND: 'VN',
   VUV: 'VU', WST: 'WS', XAF: 'CM', XCD: 'AG', XOF: 'SN', XPF: 'PF',
   YER: 'YE', ZAR: 'ZA', ZMW: 'ZM', ZWL: 'ZW',
+  // ANG → AN (Netherlands Antilles) removed: dissolved 2010, no standard flag emoji
 };
+
+// Country codes whose regional indicator emoji don't render on most platforms
+const BROKEN_FLAGS = new Set(['AN', 'SX', 'BQ', 'CW']);
 
 /**
  * Convert a 2-letter country code to its flag emoji.
  * Works by mapping A-Z to regional indicator symbols (U+1F1E6–U+1F1FF).
  */
 function countryToFlag(cc: string): string {
+  if (BROKEN_FLAGS.has(cc)) return '';
   const codePoints = [...cc.toUpperCase()].map(
     (c) => 0x1f1e6 + c.charCodeAt(0) - 65
   );
   return String.fromCodePoint(...codePoints);
 }
 
-/** Get flag emoji for a currency code, or empty string if unknown */
+/** Placeholder for currencies without a valid flag */
+const FLAG_PLACEHOLDER = '🏳️';
+
+/** Get flag emoji for a currency code, or placeholder if unknown/broken */
 export function currencyFlag(code: string): string {
   const country = CURRENCY_TO_COUNTRY[code];
-  return country ? countryToFlag(country) : '';
+  if (!country) return FLAG_PLACEHOLDER;
+  const flag = countryToFlag(country);
+  return flag || FLAG_PLACEHOLDER;
 }

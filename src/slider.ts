@@ -37,14 +37,23 @@ export function initSlider(
     return el;
   }
 
+  // Logarithmic mapping: spreads small values and compresses large ones
+  // Uses log(1 + x) to handle 0 gracefully
   function valueToFraction(val: number): number {
-    if (sliderMax === sliderMin) return 0;
-    return Math.max(0, Math.min(1, (val - sliderMin) / (sliderMax - sliderMin)));
+    if (sliderMax <= sliderMin) return 0;
+    const clamped = Math.max(sliderMin, Math.min(sliderMax, val));
+    const logMin = Math.log1p(sliderMin);
+    const logMax = Math.log1p(sliderMax);
+    const logVal = Math.log1p(clamped);
+    return (logVal - logMin) / (logMax - logMin);
   }
 
   function fractionToValue(frac: number): number {
-    const raw = sliderMin + frac * (sliderMax - sliderMin);
-    // Snap to nearest notch if close (within 3% of range)
+    const logMin = Math.log1p(sliderMin);
+    const logMax = Math.log1p(sliderMax);
+    const logVal = logMin + frac * (logMax - logMin);
+    const raw = Math.expm1(logVal);
+    // Snap to nearest notch if close (within 3% of range in log space)
     const snapThreshold = (sliderMax - sliderMin) * 0.03;
     let closest = raw;
     let closestDist = Infinity;
@@ -137,8 +146,6 @@ export function initSlider(
       // Blur the input to dismiss any keyboard that may have appeared
       inputEl.blur();
       showSlider();
-      // Use the last known touch position (startX may have drifted slightly)
-      // We can't access the live touch from setTimeout, so use original position
       updateFromPosition(startX);
     }, HOLD_DELAY);
   }
