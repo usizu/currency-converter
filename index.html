@@ -39,23 +39,25 @@
           <select id="to-currency" aria-label="To currency"></select>
         </div>
 
-        <div class="conversion-row">
-          <div class="input-with-symbol">
-            <span id="from-symbol" class="currency-prefix">$</span>
-            <input
-              id="amount-input"
-              type="number"
-              inputmode="decimal"
-              placeholder="0"
-              min="0"
-              step="any"
-              autofocus
-            />
-          </div>
-          <span class="conversion-arrow">→</span>
-          <div id="result-display" class="result-display" aria-live="polite">
-            <span id="result-value" class="result-value">—</span>
-            <button id="copy-btn" class="copy-btn" aria-label="Copy result">⧉</button>
+        <div class="converter-input-area" id="converter-input-area">
+          <div class="conversion-row">
+            <div class="input-with-symbol">
+              <span id="from-symbol" class="currency-prefix">$</span>
+              <input
+                id="amount-input"
+                type="number"
+                inputmode="decimal"
+                placeholder="0"
+                min="0"
+                step="any"
+                autofocus
+              />
+            </div>
+            <span class="conversion-arrow">→</span>
+            <div id="result-display" class="result-display" aria-live="polite">
+              <span id="result-value" class="result-value">—</span>
+              <button id="copy-btn" class="copy-btn" aria-label="Copy result">⧉</button>
+            </div>
           </div>
         </div>
       </section>
@@ -89,7 +91,7 @@
       <span id="rates-pill" class="pill" role="button" tabindex="0" aria-busy="true">
         <span class="spinner">↻</span> Loading…
       </span>
-      <small id="app-version" class="version-label">v13</small>
+      <small id="app-version" class="version-label">v14</small>
       <button id="settings-btn" class="pill settings-pill">⚙ Settings</button>
     </nav>
 

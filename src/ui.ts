@@ -14,6 +14,7 @@ import { fetchRates, fetchCurrencies } from './api';
 import { currencyFlag } from './flags';
 import { currencySymbol } from './symbols';
 import { isFiat } from './fiat-codes';
+import { initSlider } from './slider';
 
 // DOM refs
 const fromSelect = document.getElementById('from-currency') as HTMLSelectElement;
@@ -417,6 +418,30 @@ export async function initUI(): Promise<void> {
     debounceTimer = setTimeout(onAmountInput, 150);
   });
   amountInput.addEventListener('blur', saveToHistory);
+
+  // Tap-hold slider
+  const converterArea = document.getElementById('converter-input-area') as HTMLDivElement;
+  initSlider(amountInput, converterArea, {
+    onUpdate: (value) => {
+      amountInput.value = String(value);
+      updateDisplay();
+    },
+    onCommit: (value) => {
+      amountInput.value = String(value);
+      setLastAmount(String(value));
+      updateDisplay();
+      saveToHistory();
+    },
+    getCurrencyCode: () => fromSelect.value,
+    getRateToUSD: () => {
+      if (!currentRates) return undefined;
+      // If base is USD, rate is directly available
+      if (currentRates.base === 'USD') return currentRates.rates[fromSelect.value];
+      // Otherwise compute via USD cross rate
+      const usdRate = currentRates.rates['USD'];
+      return usdRate ? 1 / usdRate : undefined;
+    },
+  });
 
   copyBtn.addEventListener('click', copyResult);
   ratesPill.addEventListener('click', refreshRates);
