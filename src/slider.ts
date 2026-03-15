@@ -80,6 +80,9 @@ export function initSlider(
   containerEl: HTMLElement,
   callbacks: SliderCallbacks
 ): SliderHandle {
+  const PRECISION_THRESHOLD = 40; // px below track to enter precision mode
+  const PRECISION_SCALE = 5;     // how much finer control becomes
+
   let sliderEl: HTMLDivElement | null = null;
   let holdTimer: ReturnType<typeof setTimeout> | null = null;
   let active = false;
@@ -89,6 +92,10 @@ export function initSlider(
   let currentValue = 0;
   let startX = 0;
   let trackWidth = 0;
+  let precisionMode = false;
+  let precisionAnchorX = 0;
+  let precisionAnchorValue = 0;
+  let trackCenterY = 0;
 
   function buildSlider(): HTMLDivElement {
     const el = document.createElement('div');
@@ -188,9 +195,18 @@ export function initSlider(
       containerEl.appendChild(sliderEl);
     }
     sliderEl.classList.add('visible');
+    setPrecisionMode(false);
     renderNotches();
     renderSlider();
     active = true;
+    // Capture track center Y for precision mode detection
+    requestAnimationFrame(() => {
+      if (sliderEl) {
+        const track = sliderEl.querySelector('.slider-track') as HTMLElement;
+        const rect = track.getBoundingClientRect();
+        trackCenterY = rect.top + rect.height / 2;
+      }
+    });
   }
 
   function hideSlider(): void {
@@ -200,17 +216,52 @@ export function initSlider(
     }
   }
 
+  function setPrecisionMode(on: boolean, clientX?: number): void {
+    if (on === precisionMode) return;
+    precisionMode = on;
+    if (on && clientX !== undefined) {
+      precisionAnchorX = clientX;
+      precisionAnchorValue = currentValue;
+    }
+    if (sliderEl) {
+      const thumb = sliderEl.querySelector('.slider-thumb') as HTMLElement;
+      thumb.classList.toggle('precision', on);
+    }
+  }
+
   function updateFromPosition(clientX: number): void {
     if (!sliderEl) return;
     const track = sliderEl.querySelector('.slider-track') as HTMLElement;
     const rect = track.getBoundingClientRect();
     trackWidth = rect.width;
-    const frac = Math.max(0, Math.min(1, (clientX - rect.left) / trackWidth));
-    currentValue = fractionToValue(frac);
-    // Always round to integer — no floats
-    currentValue = Math.round(currentValue);
+
+    if (precisionMode) {
+      // Precision: apply scaled horizontal delta from anchor point
+      const deltaX = clientX - precisionAnchorX;
+      const deltaFrac = deltaX / (trackWidth * PRECISION_SCALE);
+      const anchorFrac = valueToFraction(precisionAnchorValue);
+      const frac = Math.max(0, Math.min(1, anchorFrac + deltaFrac));
+      // No snapping — raw value, just round to integer
+      currentValue = Math.round(sliderMin + frac * (sliderMax - sliderMin));
+    } else {
+      const frac = Math.max(0, Math.min(1, (clientX - rect.left) / trackWidth));
+      currentValue = fractionToValue(frac);
+      currentValue = Math.round(currentValue);
+    }
+
     renderSlider();
     callbacks.onUpdate(currentValue);
+  }
+
+  function updateFromPointer(clientX: number, clientY: number): void {
+    if (!sliderEl) return;
+    const deltaY = clientY - trackCenterY;
+    if (deltaY > PRECISION_THRESHOLD && !precisionMode) {
+      setPrecisionMode(true, clientX);
+    } else if (deltaY <= PRECISION_THRESHOLD && precisionMode) {
+      setPrecisionMode(false);
+    }
+    updateFromPosition(clientX);
   }
 
   // ===== Pointer events for tap vs hold detection =====
@@ -240,7 +291,7 @@ export function initSlider(
     }
     if (active) {
       e.preventDefault();
-      updateFromPosition(e.clientX);
+      updateFromPointer(e.clientX, e.clientY);
     }
   }
 
@@ -275,7 +326,7 @@ export function initSlider(
   containerEl.addEventListener('pointermove', (e) => {
     if (active) {
       e.preventDefault();
-      updateFromPosition(e.clientX);
+      updateFromPointer(e.clientX, e.clientY);
     }
   });
   containerEl.addEventListener('pointerup', (e) => {

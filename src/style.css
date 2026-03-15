@@ -406,16 +406,20 @@ h2 {
   height: 2.4rem;
   padding: 0;
   margin-bottom: 0;
-  font-size: 1.05rem;
-  border-radius: 50%;
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: var(--t-muted);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease;
+  cursor: pointer;
 }
 
 .swap-btn:active {
   transform: rotate(180deg);
+  color: var(--t-accent);
 }
 
 /* ===== Conversion row (input + result side by side) ===== */
@@ -600,6 +604,13 @@ h2 {
   align-items: center;
   justify-content: center;
   cursor: grab;
+}
+
+.slider-thumb.precision {
+  height: 0.8rem;
+  transform: translate(-50%, -20%);
+  opacity: 0.85;
+  transition: height 0.15s ease, transform 0.15s ease, opacity 0.15s ease, left 0.03s linear;
 }
 
 /* Larger circular hit target for easy grabbing */
