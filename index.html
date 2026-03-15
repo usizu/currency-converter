@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1095c1" />
+    <meta name="description" content="Quick currency converter for travellers" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <title>Currency Converter</title>
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <hgroup>
+          <h1>Currency Converter</h1>
+          <p>
+            <span id="rates-pill" class="pill" data-tooltip="Click refresh to update">
+              Loading rates...
+            </span>
+          </p>
+        </hgroup>
+      </header>
+
+      <section id="converter">
+        <div class="currency-row">
+          <select id="from-currency" aria-label="From currency"></select>
+          <button id="swap-btn" class="swap-btn outline contrast" data-tooltip="Swap currencies">
+            ⇄
+          </button>
+          <select id="to-currency" aria-label="To currency"></select>
+        </div>
+
+        <div class="conversion-box">
+          <label>
+            Amount
+            <input
+              id="amount-input"
+              type="number"
+              inputmode="decimal"
+              placeholder="Enter amount"
+              min="0"
+              step="any"
+              autofocus
+            />
+          </label>
+          <div id="result-display" class="result-display" aria-live="polite">
+            <span id="result-value" class="result-value">—</span>
+          </div>
+        </div>
+
+        <button id="refresh-btn" class="outline" style="width: 100%">
+          ↻ Refresh Rates
+        </button>
+      </section>
+
+      <section id="breakdown">
+        <h2>Quick Reference</h2>
+        <table role="grid">
+          <thead>
+            <tr>
+              <th id="breakdown-from-header">From</th>
+              <th id="breakdown-to-header">To</th>
+            </tr>
+          </thead>
+          <tbody id="breakdown-body"></tbody>
+        </table>
+      </section>
+
+      <section id="history-section">
+        <div class="history-header">
+          <h2>History</h2>
+          <button id="clear-history-btn" class="outline secondary small-btn">Clear</button>
+        </div>
+        <ul id="history-list" class="history-list">
+          <li class="empty-state">No conversions yet</li>
+        </ul>
+      </section>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
