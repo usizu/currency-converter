@@ -319,10 +319,14 @@ h2 {
   font-weight: 500;
   white-space: nowrap;
   user-select: none;
-  transition: opacity 0.15s ease, background-color 0.25s ease, width 0.2s ease;
+  transition: opacity 0.15s ease, background-color 0.25s ease;
   flex-shrink: 0;
   border: none;
   line-height: 1.4;
+}
+
+.pill-icon {
+  flex-shrink: 0;
 }
 
 .pill-busy {
