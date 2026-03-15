@@ -1,0 +1,187 @@
+/* Layout */
+:root {
+  --pico-font-size: 100%;
+}
+
+main.container {
+  max-width: 480px;
+  padding-top: 1rem;
+  padding-bottom: 2rem;
+}
+
+header hgroup {
+  margin-bottom: 1rem;
+}
+
+header h1 {
+  margin-bottom: 0.25rem;
+  font-size: 1.5rem;
+}
+
+/* Rates pill */
+.pill {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--pico-primary-background);
+  color: var(--pico-primary-inverse);
+  cursor: default;
+  font-weight: 500;
+}
+
+.pill[data-stale="true"] {
+  background: var(--pico-del-color);
+}
+
+/* Currency row */
+.currency-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.currency-row select {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.swap-btn {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  margin-bottom: 0;
+  font-size: 1.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.swap-btn:active {
+  transform: rotate(180deg);
+}
+
+/* Conversion display */
+.conversion-box {
+  margin-bottom: 1rem;
+}
+
+.conversion-box label {
+  margin-bottom: 0.5rem;
+}
+
+.result-display {
+  text-align: center;
+  padding: 1rem;
+  border-radius: var(--pico-border-radius);
+  background: var(--pico-card-background-color);
+  border: 1px solid var(--pico-muted-border-color);
+}
+
+.result-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--pico-primary);
+}
+
+/* Breakdown */
+#breakdown table {
+  margin-top: 0.5rem;
+}
+
+#breakdown h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+#breakdown td {
+  font-variant-numeric: tabular-nums;
+}
+
+/* History */
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.history-header h2 {
+  margin-bottom: 0;
+  font-size: 1.1rem;
+}
+
+.small-btn {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.history-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-list li:last-child {
+  border-bottom: none;
+}
+
+.history-list .conversion-text {
+  font-variant-numeric: tabular-nums;
+}
+
+.history-list .time-text {
+  color: var(--pico-muted-color);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  margin-left: 0.5rem;
+}
+
+.empty-state {
+  color: var(--pico-muted-color);
+  text-align: center;
+  padding: 1rem 0 !important;
+  justify-content: center !important;
+}
+
+/* Refresh button */
+#refresh-btn {
+  margin-bottom: 1.5rem;
+}
+
+#refresh-btn[aria-busy="true"] {
+  pointer-events: none;
+}
+
+/* Sections spacing */
+#breakdown {
+  margin-bottom: 1.5rem;
+}
+
+/* Smooth transitions */
+.result-value {
+  transition: opacity 0.15s ease;
+}
+
+/* Mobile tweaks */
+@media (max-width: 480px) {
+  main.container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
