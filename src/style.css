@@ -611,6 +611,33 @@ h2 {
   border-radius: 50%;
 }
 
+.slider-ticks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.slider-tick {
+  position: absolute;
+  top: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: var(--t-muted);
+}
+
+.slider-tick.major {
+  height: 60%;
+  transform: translate(-50%, -50%);
+  opacity: 0.35;
+}
+
+.slider-tick.minor {
+  height: 30%;
+  transform: translate(-50%, -50%);
+  opacity: 0.2;
+}
+
 .slider-thumb .thumb-dots {
   color: rgba(255, 255, 255, 0.7);
   pointer-events: none;
