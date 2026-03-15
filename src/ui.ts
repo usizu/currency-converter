@@ -48,6 +48,7 @@ const settingsSearch = document.getElementById('settings-search') as HTMLInputEl
 const themeSelect = document.getElementById('theme-select') as HTMLSelectElement;
 const modeToggle = document.getElementById('mode-toggle') as HTMLButtonElement;
 const systemToggle = document.getElementById('system-toggle') as HTMLInputElement;
+const sliderTrigger = document.getElementById('slider-trigger') as HTMLButtonElement;
 
 let currentRates: CachedRates | null = null;
 let currencies: Record<string, string> = {};
@@ -57,6 +58,7 @@ let debounceTimer: ReturnType<typeof setTimeout>;
 let restoringFromHistory = false;
 let lastSavedAmount = ''; // track to avoid duplicate history entries
 let currentMode = 'dark'; // current resolved mode
+const COPY_ICON = copyBtn.innerHTML; // save original SVG icon
 
 const THEME_META_DARK: Record<string, string> = {
   midnight: '#13171f',
@@ -306,7 +308,7 @@ function copyResult(): void {
     copyBtn.textContent = '✓';
     setTimeout(() => {
       copyBtn.classList.remove('copied');
-      copyBtn.textContent = '⧉';
+      copyBtn.innerHTML = COPY_ICON;
     }, 1200);
   });
 }
@@ -451,7 +453,7 @@ export async function initUI(): Promise<void> {
 
   // Tap-hold slider
   const converterArea = document.getElementById('converter-input-area') as HTMLDivElement;
-  initSlider(amountInput, converterArea, {
+  const slider = initSlider(amountInput, converterArea, {
     onUpdate: (value) => {
       amountInput.value = String(value);
       updateDisplay();
@@ -462,6 +464,11 @@ export async function initUI(): Promise<void> {
       updateDisplay();
       saveToHistory();
     },
+  });
+
+  // Dedicated slider trigger button
+  sliderTrigger.addEventListener('click', () => {
+    slider.show();
   });
 
   copyBtn.addEventListener('click', copyResult);
