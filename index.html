@@ -10,14 +10,24 @@
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <title>Currency Converter</title>
     <script>
-      // Apply saved theme before first paint to avoid flash
+      // Apply saved theme + mode before first paint to avoid flash
       (function() {
         var t = localStorage.getItem('cc_theme') || 'midnight';
+        var sys = localStorage.getItem('cc_system');
+        var useSystem = sys === null ? true : sys === 'true';
+        var mode;
+        if (useSystem) {
+          mode = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        } else {
+          mode = localStorage.getItem('cc_mode') || 'dark';
+        }
         document.documentElement.setAttribute('data-app-theme', t);
-        document.documentElement.setAttribute('data-theme', t === 'daylight' ? 'light' : 'dark');
+        document.documentElement.setAttribute('data-theme', mode);
         var m = document.querySelector('meta[name="theme-color"]');
-        var c = {midnight:'#13171f',ocean:'#0f1923',ember:'#1a1210',forest:'#0f1a14',daylight:'#f5f7fa'};
-        if (m) m.setAttribute('content', c[t] || '#13171f');
+        var dark = {midnight:'#13171f',ocean:'#0f1923',ember:'#1a1210',forest:'#0f1a14',daylight:'#1a1d24'};
+        var light = {midnight:'#f1f3f9',ocean:'#eef6fa',ember:'#faf6f2',forest:'#eef8f2',daylight:'#f5f7fa'};
+        var colors = mode === 'light' ? light : dark;
+        if (m) m.setAttribute('content', colors[t] || '#13171f');
       })();
     </script>
   </head>
@@ -41,6 +51,7 @@
 
         <div class="converter-input-area" id="converter-input-area">
           <div class="conversion-row">
+
             <div class="input-with-symbol">
               <span id="from-symbol" class="currency-prefix">$</span>
               <input
@@ -58,6 +69,9 @@
               <span id="result-value" class="result-value">—</span>
               <button id="copy-btn" class="copy-btn" aria-label="Copy result">⧉</button>
             </div>
+          </div>
+          <div class="drag-hint" aria-hidden="true">
+            <span class="drag-hint-dots"><span></span><span></span><span></span></span>
           </div>
         </div>
       </section>
@@ -91,7 +105,7 @@
       <span id="rates-pill" class="pill" role="button" tabindex="0" aria-busy="true">
         <span class="spinner">↻</span> Loading…
       </span>
-      <small id="app-version" class="version-label">v14</small>
+      <small id="app-version" class="version-label">v15</small>
       <button id="settings-btn" class="pill settings-pill">⚙ Settings</button>
     </nav>
 
@@ -110,6 +124,13 @@
             <option value="forest">Forest</option>
             <option value="daylight">Daylight</option>
           </select>
+          <div class="theme-mode-row">
+            <button id="mode-toggle" class="mode-toggle" type="button">🌙 Dark</button>
+            <label class="system-toggle-label">
+              <input type="checkbox" id="system-toggle" />
+              System
+            </label>
+          </div>
         </div>
         <div class="settings-section">
           <h3>Font Size</h3>

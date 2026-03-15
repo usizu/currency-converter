@@ -10,6 +10,8 @@ const KEYS = {
   fontSize: 'cc_fontsize',
   showCrypto: 'cc_showcrypto',
   theme: 'cc_theme',
+  mode: 'cc_mode',
+  system: 'cc_system',
 } as const;
 
 const MAX_HISTORY = 50;
@@ -117,4 +119,22 @@ export function getTheme(): string {
 
 export function setTheme(theme: string): void {
   localStorage.setItem(KEYS.theme, theme);
+}
+
+export function getMode(): string {
+  return localStorage.getItem(KEYS.mode) ?? 'dark';
+}
+
+export function setMode(mode: string): void {
+  localStorage.setItem(KEYS.mode, mode);
+}
+
+export function getSystemTheme(): boolean {
+  const val = localStorage.getItem(KEYS.system);
+  // Default to true so first-time users get OS-appropriate mode
+  return val === null ? true : val === 'true';
+}
+
+export function setSystemTheme(on: boolean): void {
+  localStorage.setItem(KEYS.system, String(on));
 }
