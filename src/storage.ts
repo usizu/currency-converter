@@ -8,6 +8,7 @@ const KEYS = {
   amount: 'cc_amount',
   hidden: 'cc_hidden',
   fontSize: 'cc_fontsize',
+  showCrypto: 'cc_showcrypto',
 } as const;
 
 const MAX_HISTORY = 50;
@@ -99,4 +100,12 @@ export function getHiddenCurrencies(): Set<string> {
 
 export function setHiddenCurrencies(hidden: Set<string>): void {
   set(KEYS.hidden, [...hidden]);
+}
+
+export function getShowCrypto(): boolean {
+  return localStorage.getItem(KEYS.showCrypto) === 'true';
+}
+
+export function setShowCrypto(show: boolean): void {
+  localStorage.setItem(KEYS.showCrypto, String(show));
 }
