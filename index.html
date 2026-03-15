@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#13171f" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="description" content="Quick currency converter for travellers" />
@@ -16,7 +16,7 @@
         <div class="title-row">
           <h1>Currency Converter</h1>
           <div class="title-actions">
-            <span id="rates-pill" class="pill" role="button" tabindex="0" data-tooltip="Tap to refresh">
+            <span id="rates-pill" class="pill" role="button" tabindex="0">
               ↻ Loading…
             </span>
             <button id="settings-btn" class="pill settings-pill" data-tooltip="Currency settings">
@@ -54,6 +54,7 @@
           <span class="conversion-arrow">→</span>
           <div id="result-display" class="result-display" aria-live="polite">
             <span id="result-value" class="result-value">—</span>
+            <button id="copy-btn" class="copy-btn" aria-label="Copy result">⧉</button>
           </div>
         </div>
       </section>
@@ -82,7 +83,7 @@
       </section>
 
       <footer>
-        <small id="app-version" class="version-label">v5</small>
+        <small id="app-version" class="version-label">v7</small>
       </footer>
     </main>
 
