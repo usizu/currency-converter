@@ -44,6 +44,8 @@ function generateNotches(min: number, max: number): number[] {
 
 export interface SliderHandle {
   show: () => void;
+  toggle: () => void;
+  isActive: () => boolean;
 }
 
 export function initSlider(
@@ -260,6 +262,18 @@ export function initSlider(
       inputEl.blur();
       showSlider();
       renderSlider();
+    },
+    toggle() {
+      if (active) {
+        hideSlider();
+      } else {
+        inputEl.blur();
+        showSlider();
+        renderSlider();
+      }
+    },
+    isActive() {
+      return active;
     },
   };
 }

@@ -545,7 +545,7 @@ h2 {
 /* ===== Amount slider (tap-hold) ===== */
 .amount-slider {
   display: none;
-  padding: 0.4rem 0;
+  padding: 0.4rem 0.6rem;
   touch-action: none;
 }
 
@@ -654,7 +654,7 @@ section {
   font-size: 0.7rem;
   color: var(--t-muted);
   font-variant-numeric: tabular-nums;
-  margin-bottom: 0.15rem;
+  margin-bottom: 0.6rem;
   text-align: center;
 }
 
