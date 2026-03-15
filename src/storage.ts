@@ -7,6 +7,7 @@ const KEYS = {
   history: 'cc_history',
   amount: 'cc_amount',
   hidden: 'cc_hidden',
+  fontSize: 'cc_fontsize',
 } as const;
 
 const MAX_HISTORY = 50;
@@ -54,6 +55,11 @@ export function getHistory(): ConversionEntry[] {
 
 export function addToHistory(entry: ConversionEntry): void {
   const history = getHistory();
+  // Remove existing duplicate (same amount + pair) so it surfaces to top
+  const dupeIdx = history.findIndex(
+    (h) => h.amount === entry.amount && h.from === entry.from && h.to === entry.to
+  );
+  if (dupeIdx !== -1) history.splice(dupeIdx, 1);
   history.unshift(entry);
   if (history.length > MAX_HISTORY) history.length = MAX_HISTORY;
   set(KEYS.history, history);
@@ -75,6 +81,15 @@ export function getLastAmount(): string | null {
 
 export function setLastAmount(value: string): void {
   localStorage.setItem(KEYS.amount, value);
+}
+
+export function getFontSize(): number {
+  const val = localStorage.getItem(KEYS.fontSize);
+  return val ? parseInt(val, 10) : 100;
+}
+
+export function setFontSize(pct: number): void {
+  localStorage.setItem(KEYS.fontSize, String(pct));
 }
 
 export function getHiddenCurrencies(): Set<string> {

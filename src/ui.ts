@@ -1,10 +1,10 @@
-import tippy, { type Instance } from 'tippy.js';
 import type { CachedRates, ConversionEntry } from './types';
 import {
   getSelectedPair, setSelectedPair,
   getHistory, addToHistory, removeHistoryEntry, clearHistory,
   getLastAmount, setLastAmount,
   getHiddenCurrencies, setHiddenCurrencies,
+  getFontSize, setFontSize,
 } from './storage';
 import { getRate, getBreakdown, convert, formatAmount } from './converter';
 import { timeAgo } from './time';
@@ -35,6 +35,8 @@ const settingsAll = document.getElementById('settings-all') as HTMLButtonElement
 const settingsNone = document.getElementById('settings-none') as HTMLButtonElement;
 const settingsList = document.getElementById('settings-list') as HTMLUListElement;
 const copyBtn = document.getElementById('copy-btn') as HTMLButtonElement;
+const fontSizeSlider = document.getElementById('font-size-slider') as HTMLInputElement;
+const fontSizeLabel = document.getElementById('font-size-label') as HTMLSpanElement;
 
 let currentRates: CachedRates | null = null;
 let currencies: Record<string, string> = {};
@@ -43,13 +45,11 @@ let debounceTimer: ReturnType<typeof setTimeout>;
 let restoringFromHistory = false;
 let lastSavedAmount = ''; // track to avoid duplicate history entries
 
-// Tippy instances
-let fromTip: Instance;
-let toTip: Instance;
 
-function initTooltips() {
-  fromTip = tippy(fromSelect, { content: '', placement: 'top', trigger: 'focus' }) as unknown as Instance;
-  toTip = tippy(toSelect, { content: '', placement: 'top', trigger: 'focus' }) as unknown as Instance;
+function applyFontSize(pct: number): void {
+  document.documentElement.style.setProperty('--app-font-size', `${pct}%`);
+  fontSizeSlider.value = String(pct);
+  fontSizeLabel.textContent = `${pct}%`;
 }
 
 function showError(msg: string): void {
@@ -75,14 +75,6 @@ function updateSymbolPrefix(): void {
 }
 
 // ===== Currency tooltips =====
-
-function updateCurrencyTooltip(el: HTMLSelectElement) {
-  const code = el.value;
-  const flag = currencyFlag(code);
-  const name = currencies[code] ?? code;
-  const tip = el === fromSelect ? fromTip : toTip;
-  tip.setContent(`${flag} ${code} — ${name}`);
-}
 
 // ===== Currency option text =====
 
@@ -113,8 +105,6 @@ function populateCurrencies(data: Record<string, string>): void {
     if (!select.value && codes.length) select.value = codes[0];
   });
 
-  updateCurrencyTooltip(fromSelect);
-  updateCurrencyTooltip(toSelect);
   updateSymbolPrefix();
 }
 
@@ -241,9 +231,6 @@ function onHistoryClick(e: Event): void {
 
   setSelectedPair({ from: entry.from, to: entry.to });
   setLastAmount(String(entry.amount));
-  updateCurrencyTooltip(fromSelect);
-  updateCurrencyTooltip(toSelect);
-
   if (currentRates && currentRates.base !== entry.from) {
     refreshRates().then(() => { restoringFromHistory = false; });
   } else {
@@ -278,7 +265,7 @@ function updatePill(): void {
 }
 
 async function refreshRates(): Promise<void> {
-  ratesPill.innerHTML = '↻ updating…';
+  ratesPill.innerHTML = '<span class="spinner">↻</span> updating…';
   ratesPill.setAttribute('aria-busy', 'true');
   try {
     currentRates = await fetchRates(fromSelect.value);
@@ -297,8 +284,6 @@ async function refreshRates(): Promise<void> {
 function onPairChange(): void {
   const pair = { from: fromSelect.value, to: toSelect.value };
   setSelectedPair(pair);
-  updateCurrencyTooltip(fromSelect);
-  updateCurrencyTooltip(toSelect);
   updateSymbolPrefix();
 
   if (currentRates && currentRates.base !== pair.from) {
@@ -366,7 +351,8 @@ function settingsClearAll(): void {
 // ===== Init =====
 
 export async function initUI(): Promise<void> {
-  initTooltips();
+  // Apply saved font size
+  applyFontSize(getFontSize());
 
   const savedAmount = getLastAmount();
   if (savedAmount) amountInput.value = savedAmount;
@@ -405,6 +391,11 @@ export async function initUI(): Promise<void> {
   settingsList.addEventListener('change', onSettingsChange);
   settingsAll.addEventListener('click', settingsSelectAll);
   settingsNone.addEventListener('click', settingsClearAll);
+  fontSizeSlider.addEventListener('input', () => {
+    const pct = parseInt(fontSizeSlider.value, 10);
+    applyFontSize(pct);
+    setFontSize(pct);
+  });
 
   // Load data
   try {
