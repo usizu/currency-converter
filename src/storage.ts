@@ -5,6 +5,7 @@ const KEYS = {
   rates: 'cc_rates',
   currencies: 'cc_currencies',
   history: 'cc_history',
+  amount: 'cc_amount',
 } as const;
 
 const MAX_HISTORY = 50;
@@ -59,4 +60,12 @@ export function addToHistory(entry: ConversionEntry): void {
 
 export function clearHistory(): void {
   localStorage.removeItem(KEYS.history);
+}
+
+export function getLastAmount(): string | null {
+  return localStorage.getItem(KEYS.amount);
+}
+
+export function setLastAmount(value: string): void {
+  localStorage.setItem(KEYS.amount, value);
 }

@@ -10,7 +10,7 @@ export default defineConfig({
         name: 'Currency Converter',
         short_name: 'CurrConv',
         description: 'Quick currency converter for travellers',
-        theme_color: '#1095c1',
+        theme_color: '#13171f',
         background_color: '#13171f',
         display: 'standalone',
         icons: [

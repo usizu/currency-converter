@@ -1,6 +1,5 @@
 import type { BreakdownItem } from './types';
-
-const BREAKDOWN_AMOUNTS = [1, 5, 10, 20, 50, 100];
+import { getDenominations } from './denominations';
 
 export function convert(amount: number, rate: number): number {
   return amount * rate;
@@ -16,8 +15,18 @@ export function getRate(
   return toRate / fromRate;
 }
 
-export function getBreakdown(rate: number): BreakdownItem[] {
-  return BREAKDOWN_AMOUNTS.map((amount) => ({
+export function getBreakdown(
+  rate: number,
+  fromCode: string,
+  rates: Record<string, number>,
+): BreakdownItem[] {
+  // Estimate USD value of 1 unit for smart fallback
+  const usdRate = rates['USD'] ?? 1;
+  const fromRate = rates[fromCode] ?? 1;
+  const rateToUSD = usdRate / fromRate;
+
+  const denoms = getDenominations(fromCode, rateToUSD);
+  return denoms.map((amount) => ({
     amount,
     result: convert(amount, rate),
   }));

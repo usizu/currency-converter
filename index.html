@@ -2,8 +2,9 @@
 <html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1095c1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#13171f" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="description" content="Quick currency converter for travellers" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
@@ -12,14 +13,12 @@
   <body>
     <main class="container">
       <header>
-        <hgroup>
+        <div class="title-row">
           <h1>Currency Converter</h1>
-          <p>
-            <span id="rates-pill" class="pill" data-tooltip="Click refresh to update">
-              Loading rates...
-            </span>
-          </p>
-        </hgroup>
+          <span id="rates-pill" class="pill" role="button" tabindex="0" data-tooltip="Tap to refresh">
+            ↻ Loading…
+          </span>
+        </div>
       </header>
 
       <div id="error-banner" class="error-banner" hidden>
@@ -53,10 +52,6 @@
             <span id="result-value" class="result-value">—</span>
           </div>
         </div>
-
-        <button id="refresh-btn" class="outline" style="width: 100%">
-          ↻ Refresh Rates
-        </button>
       </section>
 
       <section id="breakdown">
@@ -83,7 +78,7 @@
       </section>
 
       <footer>
-        <small id="app-version" class="version-label">v3</small>
+        <small id="app-version" class="version-label">v4</small>
       </footer>
     </main>
 
