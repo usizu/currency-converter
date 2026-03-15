@@ -414,6 +414,7 @@ export async function initUI(): Promise<void> {
     showError(`Failed to load rates: ${err instanceof Error ? err.message : err}`);
   }
 
+  ratesPill.removeAttribute('aria-busy');
   updatePill();
   updateDisplay();
   renderHistory();
