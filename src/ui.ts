@@ -49,6 +49,7 @@ const themeSelect = document.getElementById('theme-select') as HTMLSelectElement
 const modeToggle = document.getElementById('mode-toggle') as HTMLButtonElement;
 const systemToggle = document.getElementById('system-toggle') as HTMLInputElement;
 const sliderTrigger = document.getElementById('slider-trigger') as HTMLButtonElement;
+const unitRate = document.getElementById('unit-rate') as HTMLDivElement;
 
 let currentRates: CachedRates | null = null;
 let currencies: Record<string, string> = {};
@@ -222,6 +223,12 @@ function updateBreakdown(rate: number, from: string): void {
   breakdownFromHeader.textContent = from;
   breakdownToHeader.textContent = to;
   if (!currentRates) return;
+
+  // Unit rate label: 1 FROM = X TO | 1 TO = Y FROM
+  const fwd = formatAmount(rate);
+  const rev = rate > 0 ? formatAmount(1 / rate) : '—';
+  unitRate.textContent = `1 ${from} = ${fwd} ${to}  ·  1 ${to} = ${rev} ${from}`;
+
   const items = getBreakdown(rate, from, currentRates.rates);
   breakdownBody.innerHTML = items
     .map(
@@ -245,7 +252,9 @@ function renderHistory(): void {
         const ff = currencyFlag(e.from);
         const tf = currencyFlag(e.to);
         return `<li data-index="${i}" class="history-item">
-          <span class="conversion-text"><span class="flag">${ff}</span> ${formatAmount(e.amount)} ${e.from} → <span class="flag">${tf}</span> ${formatAmount(e.result)} ${e.to}</span>
+          <span class="h-from"><span class="flag">${ff}</span> ${formatAmount(e.amount)} ${e.from}</span>
+          <span class="h-arrow">→</span>
+          <span class="h-to"><span class="flag">${tf}</span> ${formatAmount(e.result)} ${e.to}</span>
           <span class="history-right">
             <span class="time-text">${timeAgo(e.timestamp)}</span>
             <button class="history-delete" data-delete="${i}" aria-label="Delete">×</button>

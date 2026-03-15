@@ -7,13 +7,20 @@ export interface SliderCallbacks {
 
 /**
  * Compute a smart range based on the current input value.
- * - value < 100 → 0–100
- * - otherwise → same digit range: 100–999, 1000–9999, etc.
+ * Endpoints bridge into the adjacent order of magnitude so
+ * you can slide to the boundary and "jump" up or down a digit.
+ *
+ * - value < 100       → 0–100
+ * - value 100–999     → 99–1000
+ * - value 1000–9999   → 999–10000
+ * - etc.
  */
 function getSmartRange(value: number): { min: number; max: number } {
   if (value < 100) return { min: 0, max: 100 };
   const digits = Math.floor(Math.log10(value));
-  return { min: Math.pow(10, digits), max: Math.pow(10, digits + 1) - 1 };
+  const low = Math.pow(10, digits) - 1;     // e.g. 99 for 100–999
+  const high = Math.pow(10, digits + 1);    // e.g. 1000 for 100–999
+  return { min: low, max: high };
 }
 
 /**
@@ -21,7 +28,6 @@ function getSmartRange(value: number): { min: number; max: number } {
  */
 function generateNotches(min: number, max: number): number[] {
   const range = max - min;
-  // Aim for ~5 intervals
   const rawStep = range / 5;
   const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
   const niceStep = Math.round(rawStep / magnitude) * magnitude || magnitude;
@@ -59,16 +65,24 @@ export function initSlider(
     const el = document.createElement('div');
     el.className = 'amount-slider';
     el.innerHTML = `
-      <div class="slider-track">
-        <div class="slider-fill"></div>
-        <div class="slider-thumb"></div>
+      <div class="slider-track-wrap">
+        <div class="slider-track">
+          <div class="slider-fill"></div>
+        </div>
+        <div class="slider-thumb">
+          <svg class="thumb-dots" width="8" height="12" viewBox="0 0 8 12" fill="currentColor">
+            <circle cx="2" cy="2" r="1.2"/><circle cx="6" cy="2" r="1.2"/>
+            <circle cx="2" cy="6" r="1.2"/><circle cx="6" cy="6" r="1.2"/>
+            <circle cx="2" cy="10" r="1.2"/><circle cx="6" cy="10" r="1.2"/>
+          </svg>
+        </div>
       </div>
       <div class="slider-notches"></div>
     `;
     return el;
   }
 
-  // Linear mapping — works well since the range always covers a single order of magnitude
+  // Linear mapping — works well since the range covers ~one order of magnitude
   function valueToFraction(val: number): number {
     if (sliderMax <= sliderMin) return 0;
     return Math.max(0, Math.min(1, (val - sliderMin) / (sliderMax - sliderMin)));
@@ -147,14 +161,8 @@ export function initSlider(
     trackWidth = rect.width;
     const frac = Math.max(0, Math.min(1, (clientX - rect.left) / trackWidth));
     currentValue = fractionToValue(frac);
-    // Round to sensible precision based on magnitude
-    if (currentValue >= 100) {
-      currentValue = Math.round(currentValue);
-    } else if (currentValue >= 1) {
-      currentValue = Math.round(currentValue * 10) / 10;
-    } else {
-      currentValue = Math.round(currentValue * 100) / 100;
-    }
+    // Always round to integer — no floats
+    currentValue = Math.round(currentValue);
     renderSlider();
     callbacks.onUpdate(currentValue);
   }
@@ -164,6 +172,9 @@ export function initSlider(
   function onTouchStart(e: TouchEvent): void {
     // Don't interfere if input is already focused (keyboard mode)
     if (document.activeElement === inputEl) return;
+    // Don't interfere if touch is on the slider trigger button
+    const target = e.target as HTMLElement;
+    if (target.closest('.slider-trigger')) return;
 
     startX = e.touches[0].clientX;
     holdTimer = setTimeout(() => {
