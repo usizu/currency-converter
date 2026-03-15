@@ -1,3 +1,5 @@
+import { isFiat } from './fiat-codes';
+
 // Map currency codes to ISO 3166-1 alpha-2 country codes for flag emoji
 // Most currencies map to one primary country; some are shared (EUR, XAF, etc.)
 const CURRENCY_TO_COUNTRY: Record<string, string> = {
@@ -48,10 +50,13 @@ function countryToFlag(cc: string): string {
 /** Placeholder for currencies without a valid flag */
 const FLAG_PLACEHOLDER = '🏳️';
 
+/** Icon for crypto currencies */
+const CRYPTO_ICON = '🪙';
+
 /** Get flag emoji for a currency code, or placeholder if unknown/broken */
 export function currencyFlag(code: string): string {
   const country = CURRENCY_TO_COUNTRY[code];
-  if (!country) return FLAG_PLACEHOLDER;
+  if (!country) return isFiat(code) ? FLAG_PLACEHOLDER : CRYPTO_ICON;
   const flag = countryToFlag(country);
   return flag || FLAG_PLACEHOLDER;
 }

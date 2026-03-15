@@ -227,7 +227,7 @@ function updateBreakdown(rate: number, from: string): void {
   // Unit rate label: 1 FROM = X TO | 1 TO = Y FROM
   const fwd = formatAmount(rate);
   const rev = rate > 0 ? formatAmount(1 / rate) : '—';
-  unitRate.textContent = `1 ${from} = ${fwd} ${to}  ·  1 ${to} = ${rev} ${from}`;
+  unitRate.innerHTML = `1 ${from} = ${fwd} ${to} <span style="padding:0 0.5em">·</span> 1 ${to} = ${rev} ${from}`;
 
   const items = getBreakdown(rate, from, currentRates.rates);
   breakdownBody.innerHTML = items

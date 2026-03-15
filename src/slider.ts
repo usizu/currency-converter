@@ -110,12 +110,15 @@ export function initSlider(
     const fill = sliderEl.querySelector('.slider-fill') as HTMLElement;
     const thumb = sliderEl.querySelector('.slider-thumb') as HTMLElement;
     fill.style.width = `${frac * 100}%`;
-    thumb.style.left = `${frac * 100}%`;
+    // Clamp thumb so it doesn't extend outside the track at extremes
+    // thumb is 1rem wide, track has ~0.5rem thumb half-width to keep inside
+    thumb.style.left = `clamp(0.5rem, ${frac * 100}%, calc(100% - 0.5rem))`;
   }
 
   function formatLabel(n: number): string {
-    if (n >= 1_000_000) return `${n / 1_000_000}M`;
-    if (n >= 1000) return `${n / 1000}k`;
+    n = Math.round(n);
+    if (n >= 1_000_000) return `${Math.round(n / 1_000_000)}M`;
+    if (n >= 1000) return `${Math.round(n / 1000)}k`;
     return String(n);
   }
 
@@ -167,16 +170,14 @@ export function initSlider(
     callbacks.onUpdate(currentValue);
   }
 
-  // ===== Touch events on the input =====
+  // ===== Pointer events for tap vs hold detection =====
 
-  function onTouchStart(e: TouchEvent): void {
-    // Don't interfere if input is already focused (keyboard mode)
-    if (document.activeElement === inputEl) return;
-    // Don't interfere if touch is on the slider trigger button
+  function onPointerDown(e: PointerEvent): void {
+    // Don't interfere if pointer is on the slider trigger button
     const target = e.target as HTMLElement;
     if (target.closest('.slider-trigger')) return;
 
-    startX = e.touches[0].clientX;
+    startX = e.clientX;
     holdTimer = setTimeout(() => {
       holdTimer = null;
       inputEl.blur();
@@ -185,9 +186,9 @@ export function initSlider(
     }, HOLD_DELAY);
   }
 
-  function onTouchMove(e: TouchEvent): void {
+  function onPointerMove(e: PointerEvent): void {
     if (holdTimer) {
-      const dx = Math.abs(e.touches[0].clientX - startX);
+      const dx = Math.abs(e.clientX - startX);
       if (dx > 10) {
         clearTimeout(holdTimer);
         holdTimer = null;
@@ -196,15 +197,15 @@ export function initSlider(
     }
     if (active) {
       e.preventDefault();
-      updateFromPosition(e.touches[0].clientX);
+      updateFromPosition(e.clientX);
     }
   }
 
-  function onTouchEnd(): void {
+  function onPointerUp(): void {
     if (holdTimer) {
       clearTimeout(holdTimer);
       holdTimer = null;
-      inputEl.focus();
+      // Short tap — let the input focus naturally
       return;
     }
     if (active) {
@@ -213,46 +214,41 @@ export function initSlider(
     }
   }
 
-  // ===== Slider-internal touch (for dragging after reveal) =====
-
-  function onSliderTouch(e: TouchEvent): void {
-    if (!active) return;
-    e.preventDefault();
-    e.stopPropagation();
-    updateFromPosition(e.touches[0].clientX);
-  }
-
-  function onSliderTouchEnd(e: TouchEvent): void {
-    if (!active) return;
-    e.preventDefault();
-    e.stopPropagation();
-    callbacks.onCommit(currentValue);
-    hideSlider();
-  }
-
   // Attach to input
-  inputEl.addEventListener('touchstart', onTouchStart, { passive: false });
-  inputEl.addEventListener('touchmove', onTouchMove, { passive: false });
-  inputEl.addEventListener('touchend', onTouchEnd);
+  inputEl.addEventListener('pointerdown', onPointerDown);
+  inputEl.addEventListener('pointermove', onPointerMove);
+  inputEl.addEventListener('pointerup', onPointerUp);
+  inputEl.addEventListener('pointercancel', onPointerUp);
 
-  // Attach to slider (for continued dragging)
-  containerEl.addEventListener('touchstart', (e) => {
+  // Slider-internal pointer events (for dragging after reveal)
+  containerEl.addEventListener('pointerdown', (e) => {
     const target = e.target as HTMLElement;
-    if (target.closest('.amount-slider')) {
-      onSliderTouch(e);
-    }
-  }, { passive: false });
-  containerEl.addEventListener('touchmove', (e) => {
-    if (active) {
+    if (active && target.closest('.amount-slider')) {
       e.preventDefault();
-      updateFromPosition(e.touches[0].clientX);
-    }
-  }, { passive: false });
-  containerEl.addEventListener('touchend', (e) => {
-    if (active) {
-      onSliderTouchEnd(e);
+      e.stopPropagation();
+      updateFromPosition(e.clientX);
     }
   });
+  containerEl.addEventListener('pointermove', (e) => {
+    if (active) {
+      e.preventDefault();
+      updateFromPosition(e.clientX);
+    }
+  });
+  containerEl.addEventListener('pointerup', (e) => {
+    const target = e.target as HTMLElement;
+    if (active && target.closest('.amount-slider')) {
+      e.preventDefault();
+      e.stopPropagation();
+      callbacks.onCommit(currentValue);
+      hideSlider();
+    }
+  });
+
+  // Also handle touch events on slider to prevent scrolling while dragging
+  containerEl.addEventListener('touchmove', (e) => {
+    if (active) e.preventDefault();
+  }, { passive: false });
 
   // Close slider if input gets focused via tap
   inputEl.addEventListener('focus', () => {

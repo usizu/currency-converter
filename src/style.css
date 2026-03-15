@@ -501,7 +501,7 @@ h2 {
   margin: 0;
   line-height: 1;
   border-radius: var(--pico-border-radius);
-  transition: color 0.15s ease;
+  transition: opacity 0.1s ease;
   display: flex;
   align-items: center;
 }
@@ -511,7 +511,8 @@ h2 {
 }
 
 .copy-btn.copied {
-  color: var(--t-success);
+  color: var(--t-muted);
+  opacity: 0.7;
 }
 
 /* ===== Slider trigger button (inside input) ===== */
@@ -587,10 +588,10 @@ h2 {
 .slider-thumb {
   position: absolute;
   top: 50%;
-  width: 1.6rem;
+  width: 1rem;
   height: 1.6rem;
   background: var(--t-accent);
-  border-radius: 50%;
+  border-radius: 80px;
   transform: translate(-50%, -50%);
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
   transition: left 0.03s linear;
@@ -599,6 +600,15 @@ h2 {
   align-items: center;
   justify-content: center;
   cursor: grab;
+}
+
+/* Larger circular hit target for easy grabbing */
+.slider-thumb::before {
+  content: '';
+  position: absolute;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
 }
 
 .slider-thumb .thumb-dots {
@@ -645,6 +655,7 @@ section {
   color: var(--t-muted);
   font-variant-numeric: tabular-nums;
   margin-bottom: 0.15rem;
+  text-align: center;
 }
 
 .unit-rate:empty {
