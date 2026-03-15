@@ -4,16 +4,20 @@ import {
   getSelectedPair, setSelectedPair,
   getHistory, addToHistory, clearHistory,
   getLastAmount, setLastAmount,
+  getHiddenCurrencies, setHiddenCurrencies,
 } from './storage';
 import { getRate, getBreakdown, convert, formatAmount } from './converter';
 import { timeAgo } from './time';
 import { fetchRates, fetchCurrencies } from './api';
+import { currencyFlag } from './flags';
+import { currencySymbol } from './symbols';
 
-// DOM elements
+// DOM refs
 const fromSelect = document.getElementById('from-currency') as HTMLSelectElement;
 const toSelect = document.getElementById('to-currency') as HTMLSelectElement;
 const amountInput = document.getElementById('amount-input') as HTMLInputElement;
 const resultValue = document.getElementById('result-value') as HTMLSpanElement;
+const fromSymbol = document.getElementById('from-symbol') as HTMLSpanElement;
 const swapBtn = document.getElementById('swap-btn') as HTMLButtonElement;
 const ratesPill = document.getElementById('rates-pill') as HTMLSpanElement;
 const breakdownFromHeader = document.getElementById('breakdown-from-header') as HTMLTableCellElement;
@@ -24,11 +28,18 @@ const clearHistoryBtn = document.getElementById('clear-history-btn') as HTMLButt
 const errorBanner = document.getElementById('error-banner') as HTMLDivElement;
 const errorMessage = document.getElementById('error-message') as HTMLSpanElement;
 const errorDismiss = document.getElementById('error-dismiss') as HTMLButtonElement;
+const settingsBtn = document.getElementById('settings-btn') as HTMLButtonElement;
+const settingsPanel = document.getElementById('settings-panel') as HTMLDivElement;
+const settingsClose = document.getElementById('settings-close') as HTMLButtonElement;
+const settingsAll = document.getElementById('settings-all') as HTMLButtonElement;
+const settingsNone = document.getElementById('settings-none') as HTMLButtonElement;
+const settingsList = document.getElementById('settings-list') as HTMLUListElement;
 
 let currentRates: CachedRates | null = null;
 let currencies: Record<string, string> = {};
+let hiddenCurrencies: Set<string> = getHiddenCurrencies();
 let debounceTimer: ReturnType<typeof setTimeout>;
-let restoringFromHistory = false; // guard against history pollution
+let restoringFromHistory = false;
 
 // Tippy instances
 let pillTip: Instance;
@@ -50,33 +61,64 @@ function hideError(): void {
   errorBanner.hidden = true;
 }
 
-function updateCurrencyTooltip(el: HTMLSelectElement) {
-  const code = el.value;
-  const name = currencies[code] ?? code;
-  const tip = el === fromSelect ? fromTip : toTip;
-  tip.setContent(`${code} — ${name}`);
+// ===== Currency symbol prefix =====
+
+function updateSymbolPrefix(): void {
+  const sym = currencySymbol(fromSelect.value);
+  fromSymbol.textContent = sym;
+  // Dynamically set padding based on symbol width
+  requestAnimationFrame(() => {
+    const w = fromSymbol.offsetWidth;
+    amountInput.style.setProperty('--symbol-pad', `${w + 12}px`);
+    amountInput.style.paddingLeft = `var(--symbol-pad)`;
+  });
 }
 
-export function populateCurrencies(data: Record<string, string>): void {
+// ===== Currency tooltips =====
+
+function updateCurrencyTooltip(el: HTMLSelectElement) {
+  const code = el.value;
+  const flag = currencyFlag(code);
+  const name = currencies[code] ?? code;
+  const tip = el === fromSelect ? fromTip : toTip;
+  tip.setContent(`${flag} ${code} — ${name}`);
+}
+
+// ===== Currency option text =====
+
+function optionText(code: string, name: string): string {
+  const flag = currencyFlag(code);
+  return flag ? `${flag} ${code} — ${name}` : `${code} — ${name}`;
+}
+
+// ===== Populate selects =====
+
+function populateCurrencies(data: Record<string, string>): void {
   currencies = data;
   const pair = getSelectedPair();
-  const codes = Object.keys(data).sort();
+  const codes = Object.keys(data).sort().filter((c) => !hiddenCurrencies.has(c));
 
   [fromSelect, toSelect].forEach((select, i) => {
+    const prev = select.value;
     select.innerHTML = '';
-    const selected = i === 0 ? pair.from : pair.to;
+    const selected = prev || (i === 0 ? pair.from : pair.to);
     codes.forEach((code) => {
       const opt = document.createElement('option');
       opt.value = code;
-      opt.textContent = `${code} — ${data[code]}`;
+      opt.textContent = optionText(code, data[code]);
       if (code === selected) opt.selected = true;
       select.appendChild(opt);
     });
+    // Ensure a selection exists even if previous was hidden
+    if (!select.value && codes.length) select.value = codes[0];
   });
 
   updateCurrencyTooltip(fromSelect);
   updateCurrencyTooltip(toSelect);
+  updateSymbolPrefix();
 }
+
+// ===== Display =====
 
 function updateDisplay(): void {
   if (!currentRates) return;
@@ -85,8 +127,8 @@ function updateDisplay(): void {
   const amount = parseFloat(amountInput.value);
   const rate = getRate(currentRates.rates, from, to);
 
-  // Always update breakdown
   updateBreakdown(rate, from);
+  updateSymbolPrefix();
 
   if (!amount || isNaN(amount) || amount <= 0) {
     resultValue.textContent = '—';
@@ -94,10 +136,10 @@ function updateDisplay(): void {
   }
 
   const result = convert(amount, rate);
-  resultValue.textContent = `${formatAmount(result)} ${to}`;
+  const sym = currencySymbol(to);
+  resultValue.textContent = `${sym} ${formatAmount(result)}`;
 }
 
-/** Called on user input — updates display AND saves to history + LS */
 function onAmountInput(): void {
   updateDisplay();
 
@@ -106,12 +148,9 @@ function onAmountInput(): void {
   const to = toSelect.value;
   const amount = parseFloat(amountInput.value);
 
-  // Save amount to LS
   setLastAmount(amountInput.value);
 
   if (!amount || isNaN(amount) || amount <= 0) return;
-
-  // Don't add to history if we're restoring from a history click
   if (restoringFromHistory) return;
 
   const rate = getRate(currentRates.rates, from, to);
@@ -134,6 +173,8 @@ function updateBreakdown(rate: number, from: string): void {
     .join('');
 }
 
+// ===== History =====
+
 function renderHistory(): void {
   const entries = getHistory();
   if (entries.length === 0) {
@@ -142,11 +183,14 @@ function renderHistory(): void {
   }
   historyList.innerHTML = entries
     .map(
-      (e: ConversionEntry, i: number) =>
-        `<li data-index="${i}" class="history-item">
-          <span class="conversion-text">${formatAmount(e.amount)} ${e.from} → ${formatAmount(e.result)} ${e.to}</span>
+      (e: ConversionEntry, i: number) => {
+        const ff = currencyFlag(e.from);
+        const tf = currencyFlag(e.to);
+        return `<li data-index="${i}" class="history-item">
+          <span class="conversion-text">${ff} ${formatAmount(e.amount)} ${e.from} → ${tf} ${formatAmount(e.result)} ${e.to}</span>
           <span class="time-text">${timeAgo(e.timestamp)}</span>
-        </li>`
+        </li>`;
+      }
     )
     .join('');
 }
@@ -159,7 +203,6 @@ function onHistoryClick(e: Event): void {
   const entry = entries[index];
   if (!entry) return;
 
-  // Restore the conversion without polluting history
   restoringFromHistory = true;
 
   fromSelect.value = entry.from;
@@ -171,16 +214,15 @@ function onHistoryClick(e: Event): void {
   updateCurrencyTooltip(fromSelect);
   updateCurrencyTooltip(toSelect);
 
-  // May need to fetch rates for new base
   if (currentRates && currentRates.base !== entry.from) {
-    refreshRates().then(() => {
-      restoringFromHistory = false;
-    });
+    refreshRates().then(() => { restoringFromHistory = false; });
   } else {
     updateDisplay();
     restoringFromHistory = false;
   }
 }
+
+// ===== Pill & refresh =====
 
 function updatePill(): void {
   if (!currentRates) return;
@@ -189,7 +231,6 @@ function updatePill(): void {
   pillTip.setContent(
     `ECB rates from ${currentRates.date}\nFetched: ${new Date(currentRates.fetchedAt).toLocaleString()}`
   );
-
   const stale = Date.now() - currentRates.fetchedAt > 2 * 60 * 60 * 1000;
   ratesPill.setAttribute('data-stale', String(stale));
 }
@@ -216,6 +257,7 @@ function onPairChange(): void {
   setSelectedPair(pair);
   updateCurrencyTooltip(fromSelect);
   updateCurrencyTooltip(toSelect);
+  updateSymbolPrefix();
 
   if (currentRates && currentRates.base !== pair.from) {
     refreshRates();
@@ -224,14 +266,70 @@ function onPairChange(): void {
   }
 }
 
+// ===== Settings panel =====
+
+function openSettings(): void {
+  renderSettings();
+  settingsPanel.hidden = false;
+}
+
+function closeSettings(): void {
+  settingsPanel.hidden = true;
+  // Re-populate selects with new filter
+  populateCurrencies(currencies);
+  updateDisplay();
+}
+
+function renderSettings(): void {
+  const codes = Object.keys(currencies).sort();
+  settingsList.innerHTML = codes
+    .map((code) => {
+      const flag = currencyFlag(code);
+      const checked = !hiddenCurrencies.has(code) ? 'checked' : '';
+      return `<li>
+        <input type="checkbox" id="cur-${code}" value="${code}" ${checked} />
+        <label for="cur-${code}" class="currency-label">${flag} ${code} — ${currencies[code]}</label>
+      </li>`;
+    })
+    .join('');
+}
+
+function onSettingsChange(e: Event): void {
+  const target = e.target as HTMLInputElement;
+  if (target.type !== 'checkbox') return;
+  const code = target.value;
+  if (target.checked) {
+    hiddenCurrencies.delete(code);
+  } else {
+    hiddenCurrencies.add(code);
+  }
+  setHiddenCurrencies(hiddenCurrencies);
+}
+
+function settingsSelectAll(): void {
+  hiddenCurrencies.clear();
+  setHiddenCurrencies(hiddenCurrencies);
+  renderSettings();
+}
+
+function settingsClearAll(): void {
+  // Keep the currently selected pair visible
+  const pair = getSelectedPair();
+  const allCodes = Object.keys(currencies);
+  hiddenCurrencies = new Set(allCodes.filter((c) => c !== pair.from && c !== pair.to));
+  setHiddenCurrencies(hiddenCurrencies);
+  renderSettings();
+}
+
+// ===== Init =====
+
 export async function initUI(): Promise<void> {
   initTooltips();
 
-  // Restore last amount
   const savedAmount = getLastAmount();
   if (savedAmount) amountInput.value = savedAmount;
 
-  // Bind events
+  // Events
   fromSelect.addEventListener('change', onPairChange);
   toSelect.addEventListener('change', onPairChange);
   swapBtn.addEventListener('click', () => {
@@ -254,7 +352,17 @@ export async function initUI(): Promise<void> {
   });
   historyList.addEventListener('click', onHistoryClick);
 
-  // Load currencies
+  // Settings
+  settingsBtn.addEventListener('click', openSettings);
+  settingsClose.addEventListener('click', closeSettings);
+  settingsPanel.addEventListener('click', (e) => {
+    if (e.target === settingsPanel) closeSettings();
+  });
+  settingsList.addEventListener('change', onSettingsChange);
+  settingsAll.addEventListener('click', settingsSelectAll);
+  settingsNone.addEventListener('click', settingsClearAll);
+
+  // Load data
   try {
     const data = await fetchCurrencies();
     populateCurrencies(data);
@@ -263,7 +371,6 @@ export async function initUI(): Promise<void> {
     showError(`Failed to load currencies: ${err instanceof Error ? err.message : err}`);
   }
 
-  // Load rates
   try {
     currentRates = await fetchRates(fromSelect.value);
     hideError();
@@ -276,9 +383,6 @@ export async function initUI(): Promise<void> {
   updateDisplay();
   renderHistory();
 
-  // Auto-refresh every 30 minutes
   setInterval(refreshRates, 30 * 60 * 1000);
-
-  // Update pill every minute
   setInterval(updatePill, 60 * 1000);
 }

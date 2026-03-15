@@ -6,6 +6,7 @@ const KEYS = {
   currencies: 'cc_currencies',
   history: 'cc_history',
   amount: 'cc_amount',
+  hidden: 'cc_hidden',
 } as const;
 
 const MAX_HISTORY = 50;
@@ -68,4 +69,13 @@ export function getLastAmount(): string | null {
 
 export function setLastAmount(value: string): void {
   localStorage.setItem(KEYS.amount, value);
+}
+
+export function getHiddenCurrencies(): Set<string> {
+  const arr = get<string[]>(KEYS.hidden);
+  return new Set(arr ?? []);
+}
+
+export function setHiddenCurrencies(hidden: Set<string>): void {
+  set(KEYS.hidden, [...hidden]);
 }
