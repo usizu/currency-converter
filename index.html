@@ -22,6 +22,11 @@
         </hgroup>
       </header>
 
+      <div id="error-banner" class="error-banner" hidden>
+        <span id="error-message">Failed to load rates</span>
+        <button id="error-dismiss" class="error-dismiss">&times;</button>
+      </div>
+
       <section id="converter">
         <div class="currency-row">
           <select id="from-currency" aria-label="From currency"></select>
@@ -78,7 +83,7 @@
       </section>
 
       <footer>
-        <small id="app-version" class="version-label">v2</small>
+        <small id="app-version" class="version-label">v3</small>
       </footer>
     </main>
 

@@ -1,7 +1,7 @@
 import type { CachedRates } from './types';
 import { getCachedRates, setCachedRates, getCachedCurrencies, setCachedCurrencies } from './storage';
 
-const BASE_URL = 'https://api.frankfurter.dev';
+const BASE_URL = 'https://api.frankfurter.app';
 
 export async function fetchCurrencies(): Promise<Record<string, string>> {
   const cached = getCachedCurrencies();
@@ -11,9 +11,10 @@ export async function fetchCurrencies(): Promise<Record<string, string>> {
     const data: Record<string, string> = await res.json();
     setCachedCurrencies(data);
     return data;
-  } catch {
+  } catch (err) {
+    console.error('fetchCurrencies failed:', err);
     if (cached) return cached;
-    throw new Error('No currencies available offline');
+    throw err;
   }
 }
 
@@ -31,8 +32,9 @@ export async function fetchRates(base: string): Promise<CachedRates> {
     };
     setCachedRates(cachedRates);
     return cachedRates;
-  } catch {
+  } catch (err) {
+    console.error('fetchRates failed:', err);
     if (cached) return cached;
-    throw new Error('No rates available offline');
+    throw err;
   }
 }
