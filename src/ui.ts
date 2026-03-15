@@ -34,6 +34,7 @@ const settingsClose = document.getElementById('settings-close') as HTMLButtonEle
 const settingsAll = document.getElementById('settings-all') as HTMLButtonElement;
 const settingsNone = document.getElementById('settings-none') as HTMLButtonElement;
 const settingsList = document.getElementById('settings-list') as HTMLUListElement;
+const copyBtn = document.getElementById('copy-btn') as HTMLButtonElement;
 
 let currentRates: CachedRates | null = null;
 let currencies: Record<string, string> = {};
@@ -223,6 +224,21 @@ function onHistoryClick(e: Event): void {
   }
 }
 
+// ===== Copy result =====
+
+function copyResult(): void {
+  const text = resultValue.textContent?.trim();
+  if (!text || text === '—') return;
+  navigator.clipboard.writeText(text).then(() => {
+    copyBtn.classList.add('copied');
+    copyBtn.textContent = '✓';
+    setTimeout(() => {
+      copyBtn.classList.remove('copied');
+      copyBtn.textContent = '⧉';
+    }, 1200);
+  });
+}
+
 // ===== Pill & refresh =====
 
 function updatePill(): void {
@@ -343,6 +359,7 @@ export async function initUI(): Promise<void> {
   });
   amountInput.addEventListener('blur', onAmountBlur);
 
+  copyBtn.addEventListener('click', copyResult);
   ratesPill.addEventListener('click', refreshRates);
   errorDismiss.addEventListener('click', hideError);
   clearHistoryBtn.addEventListener('click', () => {
