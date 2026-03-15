@@ -4,18 +4,22 @@ import { getCachedRates, setCachedRates, getCachedCurrencies, setCachedCurrencie
 const CDN_BASE = 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1';
 const FALLBACK_BASE = 'https://latest.currency-api.pages.dev/v1';
 
-/** Fetch with automatic fallback to secondary CDN */
+/** Fetch with automatic fallback to secondary CDN.
+ *  Falls back on any failure: network error, rate limit (429), server error, etc. */
 async function fetchWithFallback(path: string): Promise<Response> {
+  let primaryError: string | undefined;
   try {
     const res = await fetch(`${CDN_BASE}${path}`);
     if (res.ok) return res;
-    throw new Error(`HTTP ${res.status}`);
-  } catch {
-    // Fallback to Cloudflare Pages mirror
-    const res = await fetch(`${FALLBACK_BASE}${path}`);
-    if (!res.ok) throw new Error(`Fallback HTTP ${res.status}`);
-    return res;
+    primaryError = `CDN HTTP ${res.status}`;
+  } catch (err) {
+    primaryError = err instanceof Error ? err.message : String(err);
   }
+  // Any primary failure → try fallback
+  console.warn(`Primary CDN failed (${primaryError}), trying fallback…`);
+  const res = await fetch(`${FALLBACK_BASE}${path}`);
+  if (!res.ok) throw new Error(`Both CDNs failed. Primary: ${primaryError}. Fallback: HTTP ${res.status}`);
+  return res;
 }
 
 /** Normalise keys to uppercase (API uses lowercase codes) */
