@@ -178,6 +178,16 @@ header h1 {
   transition: opacity 0.15s ease;
 }
 
+/* Version label */
+.version-label {
+  display: block;
+  text-align: center;
+  color: var(--pico-muted-color);
+  opacity: 0.5;
+  font-size: 0.7rem;
+  padding-top: 1rem;
+}
+
 /* Mobile tweaks */
 @media (max-width: 480px) {
   main.container {
