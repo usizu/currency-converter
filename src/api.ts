@@ -38,15 +38,15 @@ export async function fetchCurrencies(): Promise<Record<string, string>> {
     const data: Record<string, string> = await res.json();
     // API returns lowercase codes like { "usd": "US Dollar" }
     const normalized = uppercaseKeys(data);
-    // Filter out crypto/precious metals — keep only 3-letter fiat codes
-    const fiat: Record<string, string> = {};
+    // Keep only valid 3-letter codes with non-empty names
+    const filtered: Record<string, string> = {};
     for (const [code, name] of Object.entries(normalized)) {
       if (/^[A-Z]{3}$/.test(code) && name.length > 0) {
-        fiat[code] = name;
+        filtered[code] = name;
       }
     }
-    setCachedCurrencies(fiat);
-    return fiat;
+    setCachedCurrencies(filtered);
+    return filtered;
   } catch (err) {
     console.error('fetchCurrencies failed:', err);
     if (cached) return cached;

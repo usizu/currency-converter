@@ -5,12 +5,14 @@ import {
   getLastAmount, setLastAmount,
   getHiddenCurrencies, setHiddenCurrencies,
   getFontSize, setFontSize,
+  getShowCrypto, setShowCrypto,
 } from './storage';
 import { getRate, getBreakdown, convert, formatAmount } from './converter';
 import { timeAgo } from './time';
 import { fetchRates, fetchCurrencies } from './api';
 import { currencyFlag } from './flags';
 import { currencySymbol } from './symbols';
+import { isFiat } from './fiat-codes';
 
 // DOM refs
 const fromSelect = document.getElementById('from-currency') as HTMLSelectElement;
@@ -37,10 +39,13 @@ const settingsList = document.getElementById('settings-list') as HTMLUListElemen
 const copyBtn = document.getElementById('copy-btn') as HTMLButtonElement;
 const fontSizeSlider = document.getElementById('font-size-slider') as HTMLInputElement;
 const fontSizeLabel = document.getElementById('font-size-label') as HTMLSpanElement;
+const cryptoToggle = document.getElementById('crypto-toggle') as HTMLInputElement;
+const settingsSearch = document.getElementById('settings-search') as HTMLInputElement;
 
 let currentRates: CachedRates | null = null;
 let currencies: Record<string, string> = {};
 let hiddenCurrencies: Set<string> = getHiddenCurrencies();
+let showCrypto: boolean = getShowCrypto();
 let debounceTimer: ReturnType<typeof setTimeout>;
 let restoringFromHistory = false;
 let lastSavedAmount = ''; // track to avoid duplicate history entries
@@ -88,7 +93,11 @@ function optionText(code: string, name: string): string {
 function populateCurrencies(data: Record<string, string>): void {
   currencies = data;
   const pair = getSelectedPair();
-  const codes = Object.keys(data).sort().filter((c) => !hiddenCurrencies.has(c));
+  const codes = Object.keys(data).sort().filter((c) => {
+    if (hiddenCurrencies.has(c)) return false;
+    if (!showCrypto && !isFiat(c)) return false;
+    return true;
+  });
 
   [fromSelect, toSelect].forEach((select, i) => {
     const prev = select.value;
@@ -296,6 +305,8 @@ function onPairChange(): void {
 // ===== Settings panel =====
 
 function openSettings(): void {
+  settingsSearch.value = '';
+  cryptoToggle.checked = showCrypto;
   renderSettings();
   settingsPanel.hidden = false;
 }
@@ -307,15 +318,27 @@ function closeSettings(): void {
   updateDisplay();
 }
 
-function renderSettings(): void {
-  const codes = Object.keys(currencies).sort();
+function renderSettings(filter = ''): void {
+  const query = filter.toLowerCase().trim();
+  const codes = Object.keys(currencies).sort().filter((code) => {
+    // Hide crypto unless toggle is on
+    if (!showCrypto && !isFiat(code)) return false;
+    // Apply search filter
+    if (query) {
+      const name = currencies[code].toLowerCase();
+      const codeLower = code.toLowerCase();
+      return codeLower.includes(query) || name.includes(query);
+    }
+    return true;
+  });
   settingsList.innerHTML = codes
     .map((code) => {
       const flag = currencyFlag(code);
       const checked = !hiddenCurrencies.has(code) ? 'checked' : '';
+      const tag = isFiat(code) ? '' : ' <span class="crypto-tag">crypto</span>';
       return `<li>
         <input type="checkbox" id="cur-${code}" value="${code}" ${checked} />
-        <label for="cur-${code}" class="currency-label">${flag} ${code} — ${currencies[code]}</label>
+        <label for="cur-${code}" class="currency-label">${flag} ${code} — ${currencies[code]}${tag}</label>
       </li>`;
     })
     .join('');
@@ -391,6 +414,14 @@ export async function initUI(): Promise<void> {
   settingsList.addEventListener('change', onSettingsChange);
   settingsAll.addEventListener('click', settingsSelectAll);
   settingsNone.addEventListener('click', settingsClearAll);
+  cryptoToggle.addEventListener('change', () => {
+    showCrypto = cryptoToggle.checked;
+    setShowCrypto(showCrypto);
+    renderSettings(settingsSearch.value);
+  });
+  settingsSearch.addEventListener('input', () => {
+    renderSettings(settingsSearch.value);
+  });
   fontSizeSlider.addEventListener('input', () => {
     const pct = parseInt(fontSizeSlider.value, 10);
     applyFontSize(pct);

@@ -78,7 +78,7 @@
       <span id="rates-pill" class="pill" role="button" tabindex="0" aria-busy="true">
         <span class="spinner">↻</span> Loading…
       </span>
-      <small id="app-version" class="version-label">v11</small>
+      <small id="app-version" class="version-label">v12</small>
       <button id="settings-btn" class="pill settings-pill">⚙ Settings</button>
     </nav>
 
@@ -97,10 +97,17 @@
             <span id="font-size-label" class="font-size-label">100%</span>
           </div>
         </div>
+        <div class="settings-section">
+          <label class="crypto-toggle-label">
+            <input type="checkbox" id="crypto-toggle" />
+            Show cryptocurrencies
+          </label>
+        </div>
         <div class="settings-actions">
           <button id="settings-all" class="outline small-btn">Select all</button>
           <button id="settings-none" class="outline small-btn">Clear all</button>
         </div>
+        <input type="search" id="settings-search" class="settings-search" placeholder="Search currencies…" autocomplete="off" />
         <ul id="settings-list" class="settings-list"></ul>
       </div>
     </div>
