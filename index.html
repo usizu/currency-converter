@@ -2,7 +2,7 @@
 <html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#13171f" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="description" content="Quick currency converter for travellers" />
@@ -15,9 +15,14 @@
       <header>
         <div class="title-row">
           <h1>Currency Converter</h1>
-          <span id="rates-pill" class="pill" role="button" tabindex="0" data-tooltip="Tap to refresh">
-            ↻ Loading…
-          </span>
+          <div class="title-actions">
+            <span id="rates-pill" class="pill" role="button" tabindex="0" data-tooltip="Tap to refresh">
+              ↻ Loading…
+            </span>
+            <button id="settings-btn" class="pill settings-pill" data-tooltip="Currency settings">
+              ⚙
+            </button>
+          </div>
         </div>
       </header>
 
@@ -29,25 +34,24 @@
       <section id="converter">
         <div class="currency-row">
           <select id="from-currency" aria-label="From currency"></select>
-          <button id="swap-btn" class="swap-btn outline contrast" data-tooltip="Swap currencies">
-            ⇄
-          </button>
+          <button id="swap-btn" class="swap-btn outline contrast" data-tooltip="Swap currencies">⇄</button>
           <select id="to-currency" aria-label="To currency"></select>
         </div>
 
-        <div class="conversion-box">
-          <label>
-            Amount
+        <div class="conversion-row">
+          <div class="input-with-symbol">
+            <span id="from-symbol" class="currency-prefix">$</span>
             <input
               id="amount-input"
               type="number"
               inputmode="decimal"
-              placeholder="Enter amount"
+              placeholder="0"
               min="0"
               step="any"
               autofocus
             />
-          </label>
+          </div>
+          <span class="conversion-arrow">→</span>
           <div id="result-display" class="result-display" aria-live="polite">
             <span id="result-value" class="result-value">—</span>
           </div>
@@ -78,9 +82,23 @@
       </section>
 
       <footer>
-        <small id="app-version" class="version-label">v4</small>
+        <small id="app-version" class="version-label">v5</small>
       </footer>
     </main>
+
+    <div id="settings-panel" class="settings-panel" hidden>
+      <div class="settings-content">
+        <div class="settings-header">
+          <h2>Currencies</h2>
+          <button id="settings-close" class="error-dismiss">&times;</button>
+        </div>
+        <div class="settings-actions">
+          <button id="settings-all" class="outline small-btn">Select all</button>
+          <button id="settings-none" class="outline small-btn">Clear all</button>
+        </div>
+        <ul id="settings-list" class="settings-list"></ul>
+      </div>
+    </div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>
