@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-app-theme="midnight">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#13171f" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="description" content="Quick currency converter for travellers" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <title>Currency Converter</title>
+    <script>
+      // Apply saved theme + mode before first paint to avoid flash
+      (function() {
+        var t = localStorage.getItem('cc_theme') || 'midnight';
+        var sys = localStorage.getItem('cc_system');
+        var useSystem = sys === null ? true : sys === 'true';
+        var mode;
+        if (useSystem) {
+          mode = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        } else {
+          mode = localStorage.getItem('cc_mode') || 'dark';
+        }
+        document.documentElement.setAttribute('data-app-theme', t);
+        document.documentElement.setAttribute('data-theme', mode);
+        var m = document.querySelector('meta[name="theme-color"]');
+        var dark = {midnight:'#13171f',ocean:'#0f1923',ember:'#1a1210',forest:'#0f1a14',daylight:'#1a1d24'};
+        var light = {midnight:'#f1f3f9',ocean:'#eef6fa',ember:'#faf6f2',forest:'#eef8f2',daylight:'#f5f7fa'};
+        var colors = mode === 'light' ? light : dark;
+        if (m) m.setAttribute('content', colors[t] || '#13171f');
+      })();
+    </script>
+  </head>
+  <body>
+    <main class="container" id="main">
+      <header>
+        <h1>Currency Converter</h1>
+      </header>
+
+      <div class="converter-spacer"></div>
+
+      <div id="error-banner" class="error-banner" hidden>
+        <span id="error-message">Failed to load rates</span>
+        <button id="error-dismiss" class="error-dismiss">&times;</button>
+      </div>
+
+      <section id="converter">
+        <div class="currency-row">
+          <select id="from-currency" aria-label="From currency"></select>
+          <button id="swap-btn" class="swap-btn" aria-label="Swap currencies"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg></button>
+          <select id="to-currency" aria-label="To currency"></select>
+        </div>
+
+        <div class="converter-input-area" id="converter-input-area">
+          <div class="conversion-row">
+
+            <div class="input-with-symbol">
+              <span id="from-symbol" class="currency-prefix">$</span>
+              <input
+                id="amount-input"
+                type="number"
+                inputmode="decimal"
+                placeholder="0"
+                min="0"
+                step="any"
+                autofocus
+              />
+              <button id="slider-trigger" class="slider-trigger" type="button" aria-label="Open amount slider">
+                <svg width="22" height="14" viewBox="0 0 22 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="7" x2="21" y2="7"/><circle cx="8" cy="7" r="3.5" fill="currentColor"/></svg>
+              </button>
+            </div>
+            <span class="conversion-arrow">→</span>
+            <div id="result-display" class="result-display" aria-live="polite">
+              <span id="result-value" class="result-value">—</span>
+              <button id="copy-btn" class="copy-btn" aria-label="Copy result"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5.5" y="5.5" width="9" height="9" rx="1.5" fill="currentColor" stroke="currentColor"/><rect x="1.5" y="1.5" width="9" height="9" rx="1.5"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="breakdown">
+        <div id="unit-rate" class="unit-rate"></div>
+        <h2>Quick Reference</h2>
+        <table role="grid">
+          <thead>
+            <tr>
+              <th id="breakdown-from-header">From</th>
+              <th id="breakdown-to-header">To</th>
+            </tr>
+          </thead>
+          <tbody id="breakdown-body"></tbody>
+        </table>
+      </section>
+
+      <section id="history-section">
+        <div class="history-header">
+          <h2>History</h2>
+          <button id="clear-history-btn" class="outline secondary small-btn">Clear</button>
+        </div>
+        <ul id="history-list" class="history-list">
+          <li class="empty-state">No conversions yet</li>
+        </ul>
+      </section>
+
+    </main>
+
+    <nav class="bottom-bar">
+      <span id="rates-pill" class="pill" role="button" tabindex="0" aria-busy="true">
+        <span class="pill-icon spinner">↻</span><span class="pill-text">Loading…</span>
+      </span>
+      <small id="app-version" class="version-label">v17</small>
+      <button id="settings-btn" class="pill settings-pill">⚙ Settings</button>
+    </nav>
+
+    <div id="settings-panel" class="settings-panel" hidden>
+      <div class="settings-content">
+        <div class="settings-header">
+          <h2>Currencies</h2>
+          <button id="settings-close" class="error-dismiss">&times;</button>
+        </div>
+        <div class="settings-section">
+          <h3>Theme</h3>
+          <select id="theme-select" class="theme-select">
+            <option value="midnight">Midnight</option>
+            <option value="ocean">Ocean</option>
+            <option value="ember">Ember</option>
+            <option value="forest">Forest</option>
+            <option value="daylight">Daylight</option>
+          </select>
+          <div class="theme-mode-row">
+            <button id="mode-toggle" class="mode-toggle" type="button">🌙 Dark</button>
+            <label class="system-toggle-label">
+              <input type="checkbox" id="system-toggle" />
+              System
+            </label>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Font Size</h3>
+          <div class="font-size-control">
+            <span>A</span>
+            <input type="range" id="font-size-slider" min="80" max="130" step="5" value="100" />
+            <span>A</span>
+            <span id="font-size-label" class="font-size-label">100%</span>
+          </div>
+        </div>
+        <div class="settings-actions">
+          <button id="settings-all" class="outline small-btn">Select all</button>
+          <button id="settings-none" class="outline small-btn">Clear all</button>
+          <label class="crypto-toggle-label">
+            <input type="checkbox" id="crypto-toggle" />
+            Crypto
+          </label>
+        </div>
+        <input type="search" id="settings-search" class="settings-search" placeholder="Search currencies…" autocomplete="off" />
+        <ul id="settings-list" class="settings-list"></ul>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
