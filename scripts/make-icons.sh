@@ -17,6 +17,7 @@ mkdir -p "$OUT"
 for size in 180 192 512; do
   convert "$SRC" -trim +repage \
     -resize "${size}x${size}" \
+    -gravity center -extent "${size}x${size}" \
     -background white -alpha remove -alpha off \
     "$OUT/icon-${size}.png"
   echo "Created $OUT/icon-${size}.png (${size}x${size})"
