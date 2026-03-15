@@ -1,12 +1,39 @@
-import { getSliderNotches } from './denominations';
-
 const HOLD_DELAY = 300; // ms before slider activates
 
 export interface SliderCallbacks {
   onUpdate: (value: number) => void;
   onCommit: (value: number) => void;
-  getCurrencyCode: () => string;
-  getRateToUSD: () => number | undefined;
+}
+
+/**
+ * Compute a smart range based on the current input value.
+ * - value < 100 → 0–100
+ * - otherwise → same digit range: 100–999, 1000–9999, etc.
+ */
+function getSmartRange(value: number): { min: number; max: number } {
+  if (value < 100) return { min: 0, max: 100 };
+  const digits = Math.floor(Math.log10(value));
+  return { min: Math.pow(10, digits), max: Math.pow(10, digits + 1) - 1 };
+}
+
+/**
+ * Generate evenly-spaced round notch values for a range.
+ */
+function generateNotches(min: number, max: number): number[] {
+  const range = max - min;
+  // Aim for ~5 intervals
+  const rawStep = range / 5;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const niceStep = Math.round(rawStep / magnitude) * magnitude || magnitude;
+
+  const result: number[] = [min];
+  let val = min + niceStep;
+  while (val < max - niceStep * 0.3) {
+    result.push(Math.round(val));
+    val += niceStep;
+  }
+  result.push(max);
+  return result;
 }
 
 export function initSlider(
@@ -19,7 +46,7 @@ export function initSlider(
   let active = false;
   let notches: number[] = [];
   let sliderMin = 0;
-  let sliderMax = 1000;
+  let sliderMax = 100;
   let currentValue = 0;
   let startX = 0;
   let trackWidth = 0;
@@ -37,24 +64,16 @@ export function initSlider(
     return el;
   }
 
-  // Logarithmic mapping: spreads small values and compresses large ones
-  // Uses log(1 + x) to handle 0 gracefully
+  // Linear mapping — works well since the range always covers a single order of magnitude
   function valueToFraction(val: number): number {
     if (sliderMax <= sliderMin) return 0;
-    const clamped = Math.max(sliderMin, Math.min(sliderMax, val));
-    const logMin = Math.log1p(sliderMin);
-    const logMax = Math.log1p(sliderMax);
-    const logVal = Math.log1p(clamped);
-    return (logVal - logMin) / (logMax - logMin);
+    return Math.max(0, Math.min(1, (val - sliderMin) / (sliderMax - sliderMin)));
   }
 
   function fractionToValue(frac: number): number {
-    const logMin = Math.log1p(sliderMin);
-    const logMax = Math.log1p(sliderMax);
-    const logVal = logMin + frac * (logMax - logMin);
-    const raw = Math.expm1(logVal);
-    // Snap to nearest notch if close (within 3% of range in log space)
-    const snapThreshold = (sliderMax - sliderMin) * 0.03;
+    const raw = sliderMin + frac * (sliderMax - sliderMin);
+    // Snap to nearest notch if close (within 4% of range)
+    const snapThreshold = (sliderMax - sliderMin) * 0.04;
     let closest = raw;
     let closestDist = Infinity;
     for (const n of notches) {
@@ -76,27 +95,29 @@ export function initSlider(
     thumb.style.left = `${frac * 100}%`;
   }
 
+  function formatLabel(n: number): string {
+    if (n >= 1_000_000) return `${n / 1_000_000}M`;
+    if (n >= 1000) return `${n / 1000}k`;
+    return String(n);
+  }
+
   function renderNotches(): void {
     if (!sliderEl) return;
     const container = sliderEl.querySelector('.slider-notches') as HTMLElement;
-    // Show a subset of notches as labels
-    const display = notches.filter((n) => n > 0).slice(0, 8);
-    container.innerHTML = display
+    container.innerHTML = notches
       .map((n) => {
         const frac = valueToFraction(n);
-        const label = n >= 1000 ? `${n / 1000}k` : String(n);
-        return `<span class="slider-notch" style="left:${frac * 100}%">${label}</span>`;
+        return `<span class="slider-notch" style="left:${frac * 100}%">${formatLabel(n)}</span>`;
       })
       .join('');
   }
 
   function showSlider(): void {
-    const code = callbacks.getCurrencyCode();
-    const rate = callbacks.getRateToUSD();
-    notches = getSliderNotches(code, rate);
-    sliderMin = 0;
-    sliderMax = notches[notches.length - 1];
     currentValue = parseFloat(inputEl.value) || 0;
+    const range = getSmartRange(currentValue);
+    sliderMin = range.min;
+    sliderMax = range.max;
+    notches = generateNotches(sliderMin, sliderMax);
 
     if (!sliderEl) {
       sliderEl = buildSlider();
@@ -122,7 +143,7 @@ export function initSlider(
     trackWidth = rect.width;
     const frac = Math.max(0, Math.min(1, (clientX - rect.left) / trackWidth));
     currentValue = fractionToValue(frac);
-    // Round to sensible precision
+    // Round to sensible precision based on magnitude
     if (currentValue >= 100) {
       currentValue = Math.round(currentValue);
     } else if (currentValue >= 1) {
@@ -143,7 +164,6 @@ export function initSlider(
     startX = e.touches[0].clientX;
     holdTimer = setTimeout(() => {
       holdTimer = null;
-      // Blur the input to dismiss any keyboard that may have appeared
       inputEl.blur();
       showSlider();
       updateFromPosition(startX);
@@ -152,7 +172,6 @@ export function initSlider(
 
   function onTouchMove(e: TouchEvent): void {
     if (holdTimer) {
-      // If moved too much before hold triggered, cancel (it's a scroll)
       const dx = Math.abs(e.touches[0].clientX - startX);
       if (dx > 10) {
         clearTimeout(holdTimer);
@@ -170,7 +189,6 @@ export function initSlider(
     if (holdTimer) {
       clearTimeout(holdTimer);
       holdTimer = null;
-      // Short tap — let the normal focus happen
       inputEl.focus();
       return;
     }

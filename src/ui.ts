@@ -462,15 +462,6 @@ export async function initUI(): Promise<void> {
       updateDisplay();
       saveToHistory();
     },
-    getCurrencyCode: () => fromSelect.value,
-    getRateToUSD: () => {
-      if (!currentRates) return undefined;
-      // If base is USD, rate is directly available
-      if (currentRates.base === 'USD') return currentRates.rates[fromSelect.value];
-      // Otherwise compute via USD cross rate
-      const usdRate = currentRates.rates['USD'];
-      return usdRate ? 1 / usdRate : undefined;
-    },
   });
 
   copyBtn.addEventListener('click', copyResult);
