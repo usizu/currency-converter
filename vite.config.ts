@@ -22,11 +22,19 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/api\.frankfurter\.app\/.*/,
+            urlPattern: /^https:\/\/cdn\.jsdelivr\.net\/npm\/@fawazahmed0\/currency-api.*/,
             handler: 'StaleWhileRevalidate',
             options: {
-              cacheName: 'frankfurter-api',
-              expiration: { maxEntries: 10, maxAgeSeconds: 86400 },
+              cacheName: 'currency-api-cdn',
+              expiration: { maxEntries: 20, maxAgeSeconds: 86400 },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/latest\.currency-api\.pages\.dev\/.*/,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'currency-api-fallback',
+              expiration: { maxEntries: 20, maxAgeSeconds: 86400 },
             },
           },
         ],
