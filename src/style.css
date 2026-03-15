@@ -150,6 +150,8 @@ main.container {
 /* ===== Header ===== */
 header {
   margin-bottom: 1rem;
+  /* Push converter area toward bottom of top third */
+  padding-top: calc(8vh);
 }
 
 header h1 {
@@ -385,6 +387,76 @@ header h1 {
   color: var(--t-success);
 }
 
+/* ===== Amount slider (tap-hold) ===== */
+.amount-slider {
+  display: none;
+  padding: 0.4rem 0;
+  touch-action: none;
+}
+
+.amount-slider.visible {
+  display: block;
+  animation: slideDown 0.15s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.slider-track {
+  position: relative;
+  height: 2.2rem;
+  background: var(--t-surface);
+  border: 1px solid var(--t-border);
+  border-radius: 999px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.slider-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--t-accent-bg);
+  opacity: 0.25;
+  border-radius: 999px;
+  transition: width 0.03s linear;
+}
+
+.slider-thumb {
+  position: absolute;
+  top: 50%;
+  width: 1.2rem;
+  height: 1.2rem;
+  background: var(--t-accent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  transition: left 0.03s linear;
+}
+
+.slider-notches {
+  position: relative;
+  height: 1.1rem;
+  margin-top: 0.15rem;
+}
+
+.slider-notch {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  color: var(--t-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Wrapper for input + slider */
+.converter-input-area {
+  position: relative;
+}
+
 /* ===== Sections ===== */
 section {
   margin-bottom: 1rem;
@@ -403,7 +475,7 @@ section {
 
 #breakdown th,
 #breakdown td {
-  padding: 0.22rem 0.4rem;
+  padding: 0.22rem 0;
   font-size: 0.8rem;
   font-variant-numeric: tabular-nums;
   -webkit-user-select: text;
@@ -445,7 +517,7 @@ section {
 .history-list li {
   height: var(--history-row);
   box-sizing: border-box;
-  padding: 0 0.25rem;
+  padding: 0;
   border-bottom: 1px solid var(--t-border);
   font-size: 0.75rem;
   display: flex;

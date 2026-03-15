@@ -97,3 +97,25 @@ export function getDenominations(code: string, rateToUSD?: number): number[] {
   }
   return generateFallback(rateToUSD ?? 1);
 }
+
+/**
+ * Get slider notch values for a currency.
+ * Returns a wider range of round values suitable for a drag slider.
+ */
+export function getSliderNotches(code: string, rateToUSD?: number): number[] {
+  const known = DENOMINATIONS[code];
+  if (known) {
+    // Build notches: 0 + all denominations + multiples of the largest
+    const max = known[known.length - 1];
+    const notches = [0, ...known];
+    // Add a few multiples beyond the highest denomination
+    for (let m = 2; m <= 10; m++) {
+      notches.push(max * m);
+    }
+    return notches;
+  }
+  // Fallback: generate a range from 0 to a sensible max
+  const fb = generateFallback(rateToUSD ?? 1);
+  const max = fb[fb.length - 1];
+  return [0, ...fb, max * 2, max * 5, max * 10];
+}
