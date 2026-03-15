@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="dark" data-app-theme="midnight">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -9,9 +9,20 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <title>Currency Converter</title>
+    <script>
+      // Apply saved theme before first paint to avoid flash
+      (function() {
+        var t = localStorage.getItem('cc_theme') || 'midnight';
+        document.documentElement.setAttribute('data-app-theme', t);
+        document.documentElement.setAttribute('data-theme', t === 'daylight' ? 'light' : 'dark');
+        var m = document.querySelector('meta[name="theme-color"]');
+        var c = {midnight:'#13171f',ocean:'#0f1923',ember:'#1a1210',forest:'#0f1a14',daylight:'#f5f7fa'};
+        if (m) m.setAttribute('content', c[t] || '#13171f');
+      })();
+    </script>
   </head>
   <body>
-    <main class="container">
+    <main class="container" id="main">
       <header>
         <h1>Currency Converter</h1>
       </header>
@@ -78,7 +89,7 @@
       <span id="rates-pill" class="pill" role="button" tabindex="0" aria-busy="true">
         <span class="spinner">↻</span> Loading…
       </span>
-      <small id="app-version" class="version-label">v12</small>
+      <small id="app-version" class="version-label">v13</small>
       <button id="settings-btn" class="pill settings-pill">⚙ Settings</button>
     </nav>
 
@@ -87,6 +98,16 @@
         <div class="settings-header">
           <h2>Currencies</h2>
           <button id="settings-close" class="error-dismiss">&times;</button>
+        </div>
+        <div class="settings-section">
+          <h3>Theme</h3>
+          <select id="theme-select" class="theme-select">
+            <option value="midnight">Midnight</option>
+            <option value="ocean">Ocean</option>
+            <option value="ember">Ember</option>
+            <option value="forest">Forest</option>
+            <option value="daylight">Daylight</option>
+          </select>
         </div>
         <div class="settings-section">
           <h3>Font Size</h3>

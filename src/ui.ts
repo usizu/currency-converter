@@ -6,6 +6,7 @@ import {
   getHiddenCurrencies, setHiddenCurrencies,
   getFontSize, setFontSize,
   getShowCrypto, setShowCrypto,
+  getTheme, setTheme,
 } from './storage';
 import { getRate, getBreakdown, convert, formatAmount } from './converter';
 import { timeAgo } from './time';
@@ -41,6 +42,7 @@ const fontSizeSlider = document.getElementById('font-size-slider') as HTMLInputE
 const fontSizeLabel = document.getElementById('font-size-label') as HTMLSpanElement;
 const cryptoToggle = document.getElementById('crypto-toggle') as HTMLInputElement;
 const settingsSearch = document.getElementById('settings-search') as HTMLInputElement;
+const themeSelect = document.getElementById('theme-select') as HTMLSelectElement;
 
 let currentRates: CachedRates | null = null;
 let currencies: Record<string, string> = {};
@@ -50,6 +52,24 @@ let debounceTimer: ReturnType<typeof setTimeout>;
 let restoringFromHistory = false;
 let lastSavedAmount = ''; // track to avoid duplicate history entries
 
+
+const THEME_META: Record<string, string> = {
+  midnight: '#13171f',
+  ocean: '#0f1923',
+  ember: '#1a1210',
+  forest: '#0f1a14',
+  daylight: '#f5f7fa',
+};
+
+function applyTheme(theme: string): void {
+  document.documentElement.setAttribute('data-app-theme', theme);
+  // Keep PicoCSS base mode in sync
+  document.documentElement.setAttribute('data-theme', theme === 'daylight' ? 'light' : 'dark');
+  // Update meta theme-color for mobile browser chrome
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', THEME_META[theme] ?? THEME_META.midnight);
+  themeSelect.value = theme;
+}
 
 function applyFontSize(pct: number): void {
   document.documentElement.style.setProperty('--app-font-size', `${pct}%`);
@@ -307,6 +327,7 @@ function onPairChange(): void {
 function openSettings(): void {
   settingsSearch.value = '';
   cryptoToggle.checked = showCrypto;
+  themeSelect.value = getTheme();
   renderSettings();
   settingsPanel.hidden = false;
 }
@@ -374,7 +395,8 @@ function settingsClearAll(): void {
 // ===== Init =====
 
 export async function initUI(): Promise<void> {
-  // Apply saved font size
+  // Apply saved theme & font size
+  applyTheme(getTheme());
   applyFontSize(getFontSize());
 
   const savedAmount = getLastAmount();
@@ -421,6 +443,11 @@ export async function initUI(): Promise<void> {
   });
   settingsSearch.addEventListener('input', () => {
     renderSettings(settingsSearch.value);
+  });
+  themeSelect.addEventListener('change', () => {
+    const theme = themeSelect.value;
+    applyTheme(theme);
+    setTheme(theme);
   });
   fontSizeSlider.addEventListener('input', () => {
     const pct = parseInt(fontSizeSlider.value, 10);
