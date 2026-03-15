@@ -25,6 +25,7 @@ function getSmartRange(value: number): { min: number; max: number } {
 
 /**
  * Generate evenly-spaced round notch values for a range.
+ * Notches snap to round multiples of the step size, not offset from min.
  */
 function generateNotches(min: number, max: number): number[] {
   const range = max - min;
@@ -33,12 +34,38 @@ function generateNotches(min: number, max: number): number[] {
   const niceStep = Math.round(rawStep / magnitude) * magnitude || magnitude;
 
   const result: number[] = [min];
-  let val = min + niceStep;
+  // Start from the first round multiple of niceStep above min
+  const firstNotch = Math.ceil(min / niceStep) * niceStep;
+  let val = firstNotch;
   while (val < max - niceStep * 0.3) {
-    result.push(Math.round(val));
+    if (val > min) result.push(val);
     val += niceStep;
   }
   result.push(max);
+  return result;
+}
+
+/**
+ * Generate sub-increment positions between major notches.
+ * Returns values at 1/5 of niceStep intervals that aren't major notches.
+ */
+function generateSubNotches(min: number, max: number, majorNotches: number[]): number[] {
+  const range = max - min;
+  const rawStep = range / 5;
+  const magnitude = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const niceStep = Math.round(rawStep / magnitude) * magnitude || magnitude;
+  const subStep = niceStep / 5;
+
+  const majorSet = new Set(majorNotches);
+  const result: number[] = [];
+  const firstSub = Math.ceil(min / subStep) * subStep;
+  let val = firstSub;
+  while (val <= max) {
+    if (!majorSet.has(val) && val > min && val < max) {
+      result.push(Math.round(val));
+    }
+    val += subStep;
+  }
   return result;
 }
 
@@ -70,6 +97,7 @@ export function initSlider(
       <div class="slider-track-wrap">
         <div class="slider-track">
           <div class="slider-fill"></div>
+          <div class="slider-ticks"></div>
         </div>
         <div class="slider-thumb">
           <svg class="thumb-dots" width="8" height="12" viewBox="0 0 8 12" fill="currentColor">
@@ -126,6 +154,7 @@ export function initSlider(
 
   function renderNotches(): void {
     if (!sliderEl) return;
+    // Notch labels below the track
     const container = sliderEl.querySelector('.slider-notches') as HTMLElement;
     container.innerHTML = notches
       .map((n) => {
@@ -133,6 +162,18 @@ export function initSlider(
         return `<span class="slider-notch" style="left:${frac * 100}%">${formatLabel(n)}</span>`;
       })
       .join('');
+
+    // Tick marks inside the track
+    const tickContainer = sliderEl.querySelector('.slider-ticks') as HTMLElement;
+    const subNotches = generateSubNotches(sliderMin, sliderMax, notches);
+    const majorTicks = notches
+      .filter((n) => n > sliderMin && n < sliderMax)
+      .map((n) => `<span class="slider-tick major" style="left:${valueToFraction(n) * 100}%"></span>`)
+      .join('');
+    const subTicks = subNotches
+      .map((n) => `<span class="slider-tick minor" style="left:${valueToFraction(n) * 100}%"></span>`)
+      .join('');
+    tickContainer.innerHTML = majorTicks + subTicks;
   }
 
   function showSlider(): void {
